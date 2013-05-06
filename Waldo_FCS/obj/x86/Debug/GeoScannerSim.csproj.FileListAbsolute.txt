@@ -1,0 +1,11 @@
+C:\Projects\GeoScannerSim\GeoScannerSim\bin\Debug\GeoScannerSim.exe
+C:\Projects\GeoScannerSim\GeoScannerSim\bin\Debug\GeoScannerSim.pdb
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GeoScannerSim.Mission.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GeoScannerSim.ProjectSelection.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GeoScannerSim.Properties.Resources.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GeoScannerSim.exe
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GeoScannerSim.pdb
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\x86\Debug\GeoScannerSim.MissionSelection.resources

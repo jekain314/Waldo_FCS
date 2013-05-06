@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Waldo_FCS.MissionSelection" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAASAAAAECABsAMAAQCBAKAKBACAAARgAIAEEAAAAAA=</HashCode>
+      <FileName>MissionSelection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Waldo_FCS.Program" Collapsed="true">
+    <Position X="0.75" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Waldo_FCS.Mission" Collapsed="true">
+    <Position X="1" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>OBSSSIABAKAnkAIQBSCECJgKGkCCPUBoA8BGseAACGA=</HashCode>
+      <FileName>Mission.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="Waldo_FCS.PosVel" Collapsed="true">
+    <Position X="1" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAABAAACAYAAAACAAA=</HashCode>
+      <FileName>Mission.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

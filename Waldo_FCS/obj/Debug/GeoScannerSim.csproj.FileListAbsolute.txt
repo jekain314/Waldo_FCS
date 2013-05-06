@@ -1,0 +1,11 @@
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.Mission.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.MissionSelection.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.ProjectSelection.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.SimSteeringRosette.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.SteeringBarForm.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\bin\Debug\GeoScannerSim.exe
+C:\Projects\GeoScannerSim\GeoScannerSim\bin\Debug\GeoScannerSim.pdb
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.Properties.Resources.resources
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.exe
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.pdb
+C:\Projects\GeoScannerSim\GeoScannerSim\obj\Debug\GeoScannerSim.csproj.GenerateResource.Cache

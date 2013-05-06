@@ -1,4 +1,4 @@
 Waldo_FCS
 =========
 
-fight mnagement system for airborne imagery collection
+flight mnagement system for WaldoAir airborne imagery collection system
