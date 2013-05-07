@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml;
+using CanonCamera;
 
 namespace Waldo_FCS
 {
@@ -18,13 +19,15 @@ namespace Waldo_FCS
         /////////////////////////////////////////////////////////////////////////////////////
         // hardwired FlightFolder location at the top of the C drive
         //we will look for missions there and will place mission data beneath the mission
-        String FlightFolderLocation = @"C:\Waldo_FCS\";
+        String FlightFolderLocation = @"C:\_Waldo_FCS\";
         /////////////////////////////////////////////////////////////////////////////////////
 
         String FlightPlanFolder;
         String datasetFolder;
         String ProjectName;
         StreamWriter debugFile;
+
+        NavInterfaceMBed navIF_;
 
         public ProjectSelection()
         {
@@ -42,6 +45,20 @@ namespace Waldo_FCS
             //  set up the background worker thread for the camera triggering
             //  How do we prevent the posvel and trigger requests from conflicting ??? 
             /////////////////////////////////////////////////////////////////////////////
+
+            try  //call the Nav interface constructor
+            {
+                //this.statusStrip1.Text = " call NavInterfaceMbed constructor";
+                navIF_ = new NavInterfaceMBed();  //managed object constructor
+            }
+            catch  //catch the error if the initialization has failed
+            {
+                navIF_ = null;
+            }
+            if (navIF_ == null)
+            {
+                //this.statusStrip1.Text = "Error connecting to mBed";
+            }
             
             //Set the Window Size
             //TODO:  make the windows fill the screen
@@ -51,13 +68,13 @@ namespace Waldo_FCS
             //get the background image for the ProjectSelection Screen
             //use a nice looking aerial iomage  here 
             //this screen should be in the .exe folder ... 
-            this.BackgroundImage = new Bitmap(@"ProjectionSelectionBackgroundImage.jpg");
+            //this.BackgroundImage = new Bitmap(@"ProjectionSelectionBackgroundImage.jpg");
 
             //make the GeoScanner Label have a transparent background
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             this.label1.BackColor = Color.Transparent;
 
-            FlightPlanFolder = FlightFolderLocation + @"_FlightPlans\";
+            FlightPlanFolder = FlightFolderLocation;
 
             //get all the Project .kml Files in the _FlightPlans Folder
             ProjectFileNames = new List<String>();
@@ -105,6 +122,7 @@ namespace Waldo_FCS
         private void button1_Click(object sender, EventArgs e)
         {
             MessageBox.Show(" this will terminate GeoScanner","Exiting ...",MessageBoxButtons.OKCancel);
+            //this will bomb if there were no [project folders
             debugFile.WriteLine(" normal terminating from Project selection screen "); 
             Application.Exit();
         }

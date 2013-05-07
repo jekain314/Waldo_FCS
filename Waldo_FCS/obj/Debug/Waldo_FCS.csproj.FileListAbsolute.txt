@@ -33,3 +33,15 @@ C:\Projects\Waldo_FCS\Waldo_FCS\obj\Debug\GeoScannerSim.Properties.Resources.res
 C:\Projects\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.SimSteeringRosette.resources
 C:\Projects\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.SteeringBarForm.resources
 C:\Projects\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.csproj.GenerateResource.Cache
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.csprojResolveAssemblyReference.cache
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.Mission.resources
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.MissionSelection.resources
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.ProjectSelection.resources
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.Properties.Resources.resources
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.SimSteeringRosette.resources
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.SteeringBarForm.resources
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.csproj.GenerateResource.Cache
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\Debug\Waldo_FCS.pdb
