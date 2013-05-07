@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml;
-using CanonCamera;
+using CanonCameraEDSDK;
 
 namespace Waldo_FCS
 {
@@ -23,11 +23,13 @@ namespace Waldo_FCS
         /////////////////////////////////////////////////////////////////////////////////////
 
         String FlightPlanFolder;
-        String datasetFolder;
         String ProjectName;
         StreamWriter debugFile;
 
         NavInterfaceMBed navIF_;
+        CanonCamera camera;
+
+        bool simulatedMission;
 
         public ProjectSelection()
         {
@@ -46,6 +48,9 @@ namespace Waldo_FCS
             //  How do we prevent the posvel and trigger requests from conflicting ??? 
             /////////////////////////////////////////////////////////////////////////////
 
+            //this may be modified if the hardware devices are not attached 
+            simulatedMission = false;
+
             try  //call the Nav interface constructor
             {
                 //this.statusStrip1.Text = " call NavInterfaceMbed constructor";
@@ -53,21 +58,44 @@ namespace Waldo_FCS
             }
             catch  //catch the error if the initialization has failed
             {
+                var result = MessageBox.Show("found no attached mbed device \nContinue in Simulation mode?", "Warning!!",
+                            MessageBoxButtons.YesNo);
+                if (result == DialogResult.No) Application.Exit();
+                else
+                {
+                    simulatedMission = true;
+                }
+                //souldnt get here --- errors are trapped earlier
+                MessageBox.Show(" failed in the mbed initialization -- exiting ");
                 navIF_ = null;
+                Application.Exit();
             }
-            if (navIF_ == null)
+
+            //only try to open the camera if we have succssfully attached the mbed device
+            if (!simulatedMission)
             {
-                //this.statusStrip1.Text = "Error connecting to mBed";
+                try
+                {
+                    camera = new CanonCamera();
+                }
+                catch
+                {
+                    MessageBox.Show(" failed to open the canon camera ");
+                }
             }
+
+            //at this point, we have found the camera and the mbed device
+            //the mbed has launched the GPS receiver and it will begin finding satellites
+            //we will wait til we get to the mission screen before 
             
             //Set the Window Size
             //TODO:  make the windows fill the screen
             this.Width = 640;
             this.Height = 480;
 
-            //get the background image for the ProjectSelection Screen
+            //background image for the ProjectSelection Screen is set in the designed properties of the form
             //use a nice looking aerial iomage  here 
-            //this screen should be in the .exe folder ... 
+            //this screen should be in the .exe folder else we will use the one in the properties ... 
             //this.BackgroundImage = new Bitmap(@"ProjectionSelectionBackgroundImage.jpg");
 
             //make the GeoScanner Label have a transparent background
@@ -115,7 +143,8 @@ namespace Waldo_FCS
 
             //project selection is complete -- show the mission selection form
             //this displays a new form where we will select the individual mission from within a project
-            Form missionSelectionForm = new MissionSelection(projSum, FlightPlanFolder, debugFile);
+            //the mbed and camera objects have been opened here but are passed as arguments ...
+            Form missionSelectionForm = new MissionSelection(projSum, FlightPlanFolder, debugFile, navIF_, camera, simulatedMission);
             missionSelectionForm.Show();
         }
 
@@ -123,7 +152,7 @@ namespace Waldo_FCS
         {
             MessageBox.Show(" this will terminate GeoScanner","Exiting ...",MessageBoxButtons.OKCancel);
             //this will bomb if there were no [project folders
-            debugFile.WriteLine(" normal terminating from Project selection screen "); 
+            //debugFile.WriteLine(" normal terminating from Project selection screen "); 
             Application.Exit();
         }
 

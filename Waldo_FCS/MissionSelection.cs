@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using CanonCameraEDSDK;
 
 namespace Waldo_FCS
 {
@@ -33,8 +34,13 @@ namespace Waldo_FCS
 
         StreamWriter debugFile;
 
+        NavInterfaceMBed navIF_;
+        CanonCamera camera;
+        bool simulatedMission;
+
         //constructor for MissionSelection Form
-        public MissionSelection(ProjectSummary _ps, String _FlightPlanFolder, StreamWriter _debugFile)
+        public MissionSelection(ProjectSummary _ps, String _FlightPlanFolder, StreamWriter _debugFile,
+            NavInterfaceMBed navIF_In, CanonCamera cameraIn, bool simulatedMission_)
         {
             InitializeComponent();
 
@@ -42,6 +48,9 @@ namespace Waldo_FCS
             FlightPlanFolder = _FlightPlanFolder;
             ps = _ps;
             debugFile = _debugFile;
+            navIF_ = navIF_In;
+            camera = cameraIn;
+            simulatedMission = simulatedMission_;
 
             /////////////////////////////////////////////////////////////////////////////////////
             //set up the project polygon and the individual Mission polygons in pixel units
@@ -79,8 +88,17 @@ namespace Waldo_FCS
             this.Height = 480;
 
             //load the Project Map from the flight maps folder
-            String ProjectMap = FlightPlanFolder + ps.ProjectName + @"_Background\ProjectMap.jpg";
-            img = Image.FromFile(ProjectMap); //get an image object from the stored file
+            //  NOTE the map is a png  !!!!
+            String ProjectMap = FlightPlanFolder + ps.ProjectName + @"_Background\ProjectMap.png";
+            if (File.Exists(ProjectMap))
+            {
+                img = Image.FromFile(ProjectMap); //get an image object from the stored file
+            }
+            else
+            {
+                MessageBox.Show(" the file \n" + ProjectMap + "\n does not exist \n Terminating");
+                Application.Exit();
+            }
 
             //must convert this image into a non-indexed image in order to draw on it -- saved file PixelFormat is "Format8bppindexed"
             bm = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
@@ -97,6 +115,13 @@ namespace Waldo_FCS
 
         private void MissionSelection_MouseClick(object sender, MouseEventArgs e)
         {
+
+            //enter the simulation mode if the control and alt keyes are depressed whrn the mission is selected
+            if (Control.ModifierKeys == (Keys.Control | Keys.Alt))
+            {
+                simulatedMission = true;
+            }
+
             //test for the X Y location being in a polygon
             bool foundMissionPoly  = false;
             int missionNumber = 0;
@@ -112,7 +137,9 @@ namespace Waldo_FCS
                 //get the mission-specific replica of the updated to-be-flown flight line lst
                 List<endPoints> thisMissionFLUpdate = pfm.UpdateFlightLinesPerPriorFlownMissions(missionNumber);
 
-                MissionForm = new Mission(FlightPlanFolder, missionNumber, ps, thisMissionFLUpdate);
+                //this is the next displayed form
+                //note the mbed and camera hardware nterfaces have been passed in
+                MissionForm = new Mission(FlightPlanFolder, missionNumber, ps, thisMissionFLUpdate, debugFile, navIF_, camera, simulatedMission);
 
                 MissionForm.Visible = true;   //can get back to MissionSelection from Mission with a "Back" 
 

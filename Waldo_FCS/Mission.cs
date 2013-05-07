@@ -6,16 +6,19 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading;
 using System.IO;
-using CanonCamera;
+using CanonCameraEDSDK;
+using System.Diagnostics;
 
 namespace Waldo_FCS
 {
     //needs to be synched with the data structure provided by the mbed POSVEL IMU/GPS device
     public struct PosVel
     {
-        public PointD GeodeticPos;
-        public PointD UTMPos;
+        public PointD GeodeticPos;  //stores the longitude and latitude (X & Y geodetic)
+        public double altitude;     //altitude in meters
+        public PointD UTMPos;       //Easting, Northing (X & Y)
         public double velN;
         public double velE;
         public double velD;
@@ -69,12 +72,11 @@ namespace Waldo_FCS
 
         //bool thisMissionWasPreflown;
         bool enableAutoSwitchFlightLine = false;
-
+        String UTMDesignation = null;
 
         int numberCrumbTrailPoints = 200;
         Point[] crumbTrail;
 
-        bool simulatedMission;
         double deltaT;
         double speed;
         bool realTimeInitiated = false;
@@ -91,8 +93,24 @@ namespace Waldo_FCS
         //Mission specific updated flight line list 
         List<endPoints> FLUpdateList;
 
+       // Thread PosVelMessageThread;         //handles PosVel mbed request and receipt messages
+        //Thread TriggerRequestThread;        //handles trigger mbed request and receipt messages
+        Thread ImageReceivedAtSDcardThread; //handles image detected to be placed on the camera SD card
+        bool waitingForPOSVEL;              //set to false when we receive a PosVel message from mbed
+        bool waitingForTriggerResponse;
+        long elapsedTimeToTrigger;
+        bool triggerReQuested;
+
+        NavInterfaceMBed navIF_;
+        CanonCamera camera;
+        bool simulatedMission;
+        Stopwatch timeFromTrigger;
+        String imageFilenameWithPath;
+        StreamWriter debugFile;
+
         //constructor for the form
-        public Mission(String _FlightPlanFolder, int _missionNumber, ProjectSummary _ps, List<endPoints> _FLUpdateList)
+        public Mission(String _FlightPlanFolder, int _missionNumber, ProjectSummary _ps, List<endPoints> _FLUpdateList, StreamWriter debugFileIn,
+            NavInterfaceMBed navIF_In, CanonCamera cameraIn, bool simulatedMission_)
         {
             InitializeComponent();
 
@@ -101,6 +119,12 @@ namespace Waldo_FCS
             ps = _ps;
             FlightPlanFolder = _FlightPlanFolder;
             FLUpdateList = _FLUpdateList;
+            simulatedMission = simulatedMission_;
+            navIF_ = navIF_In;
+            camera = cameraIn;
+            debugFile = debugFileIn;
+
+            timeFromTrigger = new Stopwatch();
 
             ib = ps.msnSum[missionNumber].MissionImage;  //placeholder for the project image bounds
 
@@ -114,6 +138,56 @@ namespace Waldo_FCS
 
             //this will hold the locations of the aircraft over a period of time
              crumbTrail = new Point[numberCrumbTrailPoints];
+
+            //set up the threads that handle the mbed communications
+            //PosVelMessageThread = new Thread(new ThreadStart( PosVelThreadWorker) );
+            //PosVelMessageThread.Priority = ThreadPriority.AboveNormal;
+            //TriggerRequestThread = new Thread(new ThreadStart(TriggerThreadWorker) );
+            //TriggerRequestThread.Priority = ThreadPriority.AboveNormal;
+            ImageReceivedAtSDcardThread = new Thread(new ThreadStart(ImageAvaiableThreadWorker));
+            ImageReceivedAtSDcardThread.Priority = ThreadPriority.BelowNormal;
+        }
+
+        void getPosVel()
+        {
+            navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.POSVEL_MESSAGE);
+            navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them  
+            while(navIF_.PosVelMessageReceived)
+            {
+                //read the data received from the mbed to check for a PosVel message
+                navIF_.ReadMessages();
+                navIF_.ParseMessages();
+            }
+            navIF_.PosVelMessageReceived = false;
+        }
+
+        void getTrigger()
+        {
+            navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.FIRE_TRIGGER);
+            navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them  
+            timeFromTrigger.Start();
+
+            while (!navIF_.triggerTimeReceievdFromMbed)
+            {
+                //read the data received from the mbed to check for a PosVel message
+                navIF_.ReadMessages();
+                navIF_.ParseMessages();
+            }
+            navIF_.triggerTimeReceievdFromMbed = false;
+        }
+
+        void ImageAvaiableThreadWorker()
+        {
+            while (true)
+            {
+                if (camera.ImageReady(out imageFilenameWithPath))
+                {
+                    elapsedTimeToTrigger = timeFromTrigger.ElapsedMilliseconds;
+                    debugFile.WriteLine(" image ready: name = " + imageFilenameWithPath + "triggerTime = " + 
+                        navIF_.triggerTime.ToString() + "DelT= " + timeFromTrigger.ElapsedMilliseconds.ToString());
+                    timeFromTrigger.Reset();
+                }
+            }
         }
 
         private void Mission_Load(object sender, EventArgs e)
@@ -128,9 +202,15 @@ namespace Waldo_FCS
             //this.lblFlightLine.Visible = false;
 
             //load the Project Map from the flight maps folder
-            String MissionMap = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".jpg";
+            String MissionMap = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
 
-            img = Image.FromFile(MissionMap); //get an image object from the stored file
+            if (File.Exists(MissionMap))
+            {
+                img = Image.FromFile(MissionMap); //get an image object from the stored file
+            }
+            else
+            {
+            }
             //must convert this image into a non-indexed image in order to draw on it -- saved file PixelFormat is "Format8bppindexed"
             bm = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             Graphics g = Graphics.FromImage(bm);  //create a graphics object
@@ -141,10 +221,13 @@ namespace Waldo_FCS
 
             utm = new UTM2Geodetic();
 
-            //steering bar shows the pilot error on the flight line
-            // For Waldo_FCS we will show the steering bar integral to the mission display (no separate display) 
-            steeringBar = new SteeringBarForm( Convert.ToInt32(FLerrorTolerance) );
-            steeringBar.Show();
+            if (simulatedMission)
+            {
+                //steering bar shows the pilot error on the flight line
+                // For Waldo_FCS we will show the steering bar integral to the mission display (no separate display) 
+                steeringBar = new SteeringBarForm(Convert.ToInt32(FLerrorTolerance));
+                steeringBar.Show();
+            }
 
             //above objects used within the Paint event for this MissionSelection Form to regenerate the flight lines 
         }
@@ -229,7 +312,7 @@ namespace Waldo_FCS
         {
             //when the OK button is clicked at the form display --- we will start the real-time mission
 
-            simulatedMission = true;
+            //simulatedMission = true;
             //test to see if we are in the sim mode
             //select sim mode with a ctl+alt on the project mission selection
             //if mbed and camera are attached, use them but bypass the position
@@ -238,7 +321,7 @@ namespace Waldo_FCS
 
             //timer1 controls the redrawing of the mission display
             timer1.Enabled = true;
-            timer1.Interval = 100; //timer interval is 100 millisecs
+            timer1.Interval = 200; //timer interval is 200 millisecs
 
             //numerical integration interval for the simulation
             deltaT = 3.0 * this.timer1.Interval / 1000.0;
@@ -365,14 +448,33 @@ namespace Waldo_FCS
         //ths controls all the real-time action
         private void timer1_Tick(object sender, EventArgs e)
         {
+
+            // TODO:  need to prevent restarting the threat if it hasnt finished  -- can occur if the tick fires again
+            if (!simulatedMission)
+            {
+                getPosVel();
+                debugFile.WriteLine(" posvel numSats = " + navIF_.posVel_.numSV.ToString() );
+            }
+
             missionTimerTicks++;
 
             // Most of the real-time work is done here.
             // update the sim state or get the mbed POSVEL.
             // compute the platform geometry relative to the flight line
-            //determine the time to fire a trgger event for a photocenter
+            // determine the time to fire a trgger event for a photocenter
+            // no need to redo this until we have a new PosVel 
+            // For the real time this will come from the GPS receiver
+
             prepMissionDisplay();
 
+            if (triggerReQuested && !simulatedMission)  //set in the prior routine 
+            {
+                debugFile.WriteLine(" trigger fired: " + navIF_.triggerTime.ToString() );
+                getTrigger();
+                triggerReQuested = false;
+
+            }
+  
             //we refresh the screen less frequently than the run the timer
             //should do ths about 5 Hz ... 
             if (missionTimerTicks % (1000/timer1.Interval) == 0)
@@ -395,8 +497,28 @@ namespace Waldo_FCS
             ///////////////////////////////////////////////////////////////////////
 
             //get the platform position and velocity state
-            if (simulatedMission)       updateSimulatedState();  //forward integrateion assumingconstant velocity
-            else                        platFormPosVel = getGPSState();
+            if (simulatedMission)
+            {
+                updateSimulatedState();  //forward integrateion assuming constant velocity
+            }
+            else  //generate the position state from the GPS data
+            {
+                platFormPosVel.GeodeticPos.X = navIF_.posVel_.position.lon * utm.Deg2Rad;
+                platFormPosVel.GeodeticPos.Y = navIF_.posVel_.position.lat * utm.Deg2Rad;
+                platFormPosVel.altitude = navIF_.posVel_.position.height;
+                platFormPosVel.velN = navIF_.posVel_.velocity.velN;
+                platFormPosVel.velE = navIF_.posVel_.velocity.velE;
+                platFormPosVel.velD = navIF_.posVel_.velocity.velU;
+
+                //convert the GPS-derived geodetic position
+                if (UTMDesignation == null) 
+                    utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
+                        ref platFormPosVel.UTMPos.X, ref platFormPosVel.UTMPos.Y, ref UTMDesignation, false);  //compute UTMDesignation
+                else
+                    utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
+                        ref platFormPosVel.UTMPos.X, ref platFormPosVel.UTMPos.Y, ref UTMDesignation, true);  //use a preset UTMDesignation
+
+            }
 
             //////////////////////////////////////////////////////////////////////////////////
             // Compute the platform dynamic geometry relative to the current flight line 
@@ -456,6 +578,7 @@ namespace Waldo_FCS
 
                         /////////////////////////////////////////////
                         //we are into a trigger fire event
+                        triggerReQuested = true;
                         /////////////////////////////////////////////
 
                         this.panel1.Visible = false;
@@ -477,16 +600,6 @@ namespace Waldo_FCS
                         numPicsThisFL++;  //always counts up
                         currentPhotocenter += FLGeometry.FightLineTravelDirection;
 
-                        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                        //send command to mbed to fire the trigger
-                        // set a trigger state
-                        // 1) trigger condition established
-                        // 2) trigger command sent to mbed
-                        // 3) trigger response received from mbed
-                        // 4) image arrived at the camera SD card
-                        //all of this will be accomplished within a separate thread that only handles the camera triggers
-                        //the only thing that is done here is to set a trigger request bool
-                        ////////////////////////////////////////////////////////////////////////////////////////////////////////
                     }
                     /////////////////////////////////////////////////////
                     else if (enableAutoSwitchFlightLine)  //if below, we are at the end of a flightline

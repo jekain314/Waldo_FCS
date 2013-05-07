@@ -10,6 +10,8 @@ using System.Management;
 using System.Threading;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
 
 namespace Waldo_FCS
 {
@@ -91,13 +93,18 @@ namespace Waldo_FCS
             //initialize some variables and opens a debug file
             InitMBed();
 
-            //get a list of all COM ports
+            //get a list of comports that include "Port" && "mbed" && "COM" 
             List<String> comStr = FindComPorts();
 
             LogData(" found " + comStr.Count + " serial port(s)");
             foreach (String cp in comStr)
             {
                 LogData(" found comPort " + cp);
+            }
+
+            if (comStr.Count == 0)
+            {
+                    //continue in simulation mode
             }
 
             //for the Waldo FCS mechanization ... 
@@ -108,6 +115,7 @@ namespace Waldo_FCS
             {
                 LogData(" found no Com Ports ");
                 throw new Exception("Could not open MBed Interface");
+                ;
             }
 
             String baseName = "C:\\temp\\phoebusMBed";
@@ -136,7 +144,6 @@ namespace Waldo_FCS
             }
         }
         
-
         ~NavInterfaceMBed()
         {
             //Close();
@@ -205,19 +212,21 @@ namespace Waldo_FCS
 		        {
 			        if (prop.Name == "Name")
 			        {
-				        String valStr = prop.Value.ToString();
-				        if (valStr.Contains("Port") &&
+                        String valStr = prop.Value.ToString();  //example of this:  mbed Serial Port (COM15)
+                        if (valStr.Contains("Port") && valStr.Contains("mbed") &&
 							        (valStr.Contains("COM")))  //look specifically for the COM ports
 				        {
 					        int baseIdx = valStr.IndexOf("COM");
 					        int rIdx = valStr.IndexOf(")", baseIdx);
 					        int len = rIdx - baseIdx;
 					        //comPorts.Resize(comPorts, comPorts.Count+1);   //in original C++ code
-					        comPorts.Add( valStr.Substring(baseIdx, len) );
+					        comPorts.Add( valStr.Substring(baseIdx, len) );  //selects the "15" in COM15
 				        }
 			        }
 		        }
 	        }
+
+           
 
 	        return comPorts;
         }
@@ -252,18 +261,22 @@ namespace Waldo_FCS
 			        }
 			        else
 			        {
+                        MessageBox.Show(" mbed serial port opened \n 2-way messages not successful \n Check mbed firmware \n Terminating", "Warning!!");
 				        LogData("Close serial port");
 				        serialPort_.Close();
 				        serialPort_= null;
+                        Application.Exit();
 			        }
 		        }
 	        }
+
 	        if (serialPort_ == null)  //where is the catch for this  -- up one level in the call??
 	        {
 		        throw new Exception("Could not open MBed Interface at " + comID);
 	        }
 	        baseName_ = baseName;
         }
+
         public bool TestMBed()
         {
 	        /////////////////////////////////////////////////////////////////////////
@@ -319,8 +332,10 @@ namespace Waldo_FCS
 		        }
 	        }
 	        LogData("Nav Count : " + navCount.ToString("0"));
+
 	        return (navCount >= 5);    // what is the >= 5 for ??? 
         }
+
         public SerialPort OpenSerial(String comID, int baud)
         {
 	        ////////////////////////////////////////////////////////////////////////////
