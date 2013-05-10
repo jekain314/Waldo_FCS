@@ -28,10 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnBack = new System.Windows.Forms.Button();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.lblMissionNumber = new System.Windows.Forms.Label();
             this.lblFlightLines = new System.Windows.Forms.Label();
             this.lblFlightAlt = new System.Windows.Forms.Label();
@@ -65,11 +63,6 @@
             this.btnBack.Text = "Back";
             this.btnBack.UseVisualStyleBackColor = true;
             this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
-            // 
-            // timer1
-            // 
-            this.timer1.Interval = 1000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // lblMissionNumber
             // 
@@ -158,6 +151,7 @@
             this.Controls.Add(this.lblMissionNumber);
             this.Controls.Add(this.btnBack);
             this.Controls.Add(this.btnOK);
+            this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(5);
             this.Name = "Mission";
@@ -175,7 +169,6 @@
 
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnBack;
-        private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label lblMissionNumber;
         private System.Windows.Forms.Label lblFlightLines;
         private System.Windows.Forms.Label lblFlightAlt;

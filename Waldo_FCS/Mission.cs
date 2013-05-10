@@ -42,6 +42,7 @@ namespace Waldo_FCS
 
         int mapWidth = 640;
         int mapHeight = 480;
+        double mapScaleFactor = 1.5;
 
         SteeringBarForm steeringBar;
         bool useManualSimulationSteering = false;
@@ -104,13 +105,14 @@ namespace Waldo_FCS
         NavInterfaceMBed navIF_;
         CanonCamera camera;
         bool simulatedMission;
+        bool hardwareAttached;
         Stopwatch timeFromTrigger;
         String imageFilenameWithPath;
         StreamWriter debugFile;
 
         //constructor for the form
         public Mission(String _FlightPlanFolder, int _missionNumber, ProjectSummary _ps, List<endPoints> _FLUpdateList, StreamWriter debugFileIn,
-            NavInterfaceMBed navIF_In, CanonCamera cameraIn, bool simulatedMission_)
+            NavInterfaceMBed navIF_In, CanonCamera cameraIn, bool simulatedMission_, bool hardwareAttached_)
         {
             InitializeComponent();
 
@@ -119,18 +121,23 @@ namespace Waldo_FCS
             ps = _ps;
             FlightPlanFolder = _FlightPlanFolder;
             FLUpdateList = _FLUpdateList;
-            simulatedMission = simulatedMission_;
+             
             navIF_ = navIF_In;
             camera = cameraIn;
             debugFile = debugFileIn;
+
+            //NOTE: if the simulatedMission=true, we will always generate the platform state from the software
+            // If hardwareAttached=true, we will collect the IMU and GPS
+            simulatedMission = simulatedMission_;
+            hardwareAttached = hardwareAttached_;
 
             timeFromTrigger = new Stopwatch();
 
             ib = ps.msnSum[missionNumber].MissionImage;  //placeholder for the project image bounds
 
             //multiplier used for pix-to-geodetic conversion for the project map -- scales lat/lon to pixels
-            lon2PixMultiplier =  mapWidth / (ib.eastDeg - ib.westDeg);
-            lat2PixMultiplier = -mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            lon2PixMultiplier =  mapScaleFactor * mapWidth  / (ib.eastDeg - ib.westDeg);
+            lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
 
             platFormPosVel = new PosVel();
             platFormPosVel.GeodeticPos = new PointD(0.0, 0.0);
@@ -139,11 +146,6 @@ namespace Waldo_FCS
             //this will hold the locations of the aircraft over a period of time
              crumbTrail = new Point[numberCrumbTrailPoints];
 
-            //set up the threads that handle the mbed communications
-            //PosVelMessageThread = new Thread(new ThreadStart( PosVelThreadWorker) );
-            //PosVelMessageThread.Priority = ThreadPriority.AboveNormal;
-            //TriggerRequestThread = new Thread(new ThreadStart(TriggerThreadWorker) );
-            //TriggerRequestThread.Priority = ThreadPriority.AboveNormal;
             ImageReceivedAtSDcardThread = new Thread(new ThreadStart(ImageAvaiableThreadWorker));
             ImageReceivedAtSDcardThread.Priority = ThreadPriority.BelowNormal;
         }
@@ -151,8 +153,10 @@ namespace Waldo_FCS
         void getPosVel()
         {
             navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.POSVEL_MESSAGE);
-            navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them  
-            while(navIF_.PosVelMessageReceived)
+            navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them              
+
+            navIF_.PosVelMessageReceived = false;
+            while(!navIF_.PosVelMessageReceived)
             {
                 //read the data received from the mbed to check for a PosVel message
                 navIF_.ReadMessages();
@@ -167,6 +171,7 @@ namespace Waldo_FCS
             navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them  
             timeFromTrigger.Start();
 
+            navIF_.triggerTimeReceievdFromMbed = false;
             while (!navIF_.triggerTimeReceievdFromMbed)
             {
                 //read the data received from the mbed to check for a PosVel message
@@ -174,10 +179,13 @@ namespace Waldo_FCS
                 navIF_.ParseMessages();
             }
             navIF_.triggerTimeReceievdFromMbed = false;
+
+
         }
 
         void ImageAvaiableThreadWorker()
-        {
+        {             
+
             while (true)
             {
                 if (camera.ImageReady(out imageFilenameWithPath))
@@ -193,23 +201,32 @@ namespace Waldo_FCS
         private void Mission_Load(object sender, EventArgs e)
         {
 
+            this.DoubleBuffered = true;
+
             //set the mission image
-            this.Width = 640;
-            this.Height = 480;
+            this.Width  = (int)(mapScaleFactor * 640);
+            this.Height = (int)(mapScaleFactor * 480);
 
             //this.btnMinus.Visible = false;
             //this.btnPlus.Visible = false;
             //this.lblFlightLine.Visible = false;
 
             //load the Project Map from the flight maps folder
-            String MissionMap = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
 
-            if (File.Exists(MissionMap))
+            String MissionMapPNG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
+            String MissionMapJPG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".jpg";
+
+            if (File.Exists(MissionMapPNG))
             {
-                img = Image.FromFile(MissionMap); //get an image object from the stored file
+                img = Image.FromFile(MissionMapPNG); //get an image object from the stored file
+            }
+            else if (File.Exists(MissionMapJPG))
+            {
+                img = Image.FromFile(MissionMapJPG); //get an image object from the stored file
             }
             else
             {
+                MessageBox.Show(" there is no mission map:  \n" + MissionMapJPG);
             }
             //must convert this image into a non-indexed image in order to draw on it -- saved file PixelFormat is "Format8bppindexed"
             bm = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
@@ -221,29 +238,28 @@ namespace Waldo_FCS
 
             utm = new UTM2Geodetic();
 
-            if (simulatedMission)
-            {
-                //steering bar shows the pilot error on the flight line
-                // For Waldo_FCS we will show the steering bar integral to the mission display (no separate display) 
-                steeringBar = new SteeringBarForm(Convert.ToInt32(FLerrorTolerance));
-                steeringBar.Show();
-            }
+            //steering bar shows the pilot error on the flight line
+            // For Waldo_FCS we will show the steering bar integral to the mission display (no separate display) 
+            steeringBar = new SteeringBarForm(Convert.ToInt32(FLerrorTolerance));
+            steeringBar.Show();
 
             //above objects used within the Paint event for this MissionSelection Form to regenerate the flight lines 
+
+            this.BackgroundImage = img;
+            this.BackgroundImageLayout = ImageLayout.Stretch;
+            g.DrawImage(img, 0, 0);     //img is the mission background image defined above
         }
 
 
         private void Mission_Paint(object sender, PaintEventArgs e)
         {
-            System.Drawing.Graphics g = this.CreateGraphics();
 
-            //but the background map into the image 
-            //maybe keep a "background layer" in the form and then just draw on it.
-            //only change the background map when the mission is changed.
-            //The graphics layer is all that needs ToolBar change --- will prevent the flicker
-            //this.BackgroundImage = img;
-            //this.BackgroundImageLayout = ImageLayout.Stretch;
-            g.DrawImage(img, 0, 0);     //img is the mission background image defined above
+            //   see below for flicker-free drawing with buffered image
+        ///  http://www.codeguru.com/csharp/csharp/cs_graphics/drawing/article.php/c6137/Flicker-Free-Drawing-In-C.htm
+            Bitmap offScreenBmp;
+            Graphics g;
+            offScreenBmp = new Bitmap(this.Width, this.Height);
+            g = Graphics.FromImage(offScreenBmp); 
 
             //draw all the flightlines --- dont need to do this but once when the mission is changed!!!
             //draw the flight lines ONCE on the background image and generate a new background image
@@ -287,9 +303,10 @@ namespace Waldo_FCS
                     penWidth = 4;
                     g.DrawLine(new Pen(Color.Blue, penWidth), FlightLineStartPix, FlightLineEndPix);
                 }
-
             }
 
+            System.Drawing.Graphics gg = this.CreateGraphics();
+            gg.DrawImage(offScreenBmp, 0, 0);
         }
 
         private Point GeoToPix(PointD LonLat)
@@ -310,21 +327,6 @@ namespace Waldo_FCS
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            //when the OK button is clicked at the form display --- we will start the real-time mission
-
-            //simulatedMission = true;
-            //test to see if we are in the sim mode
-            //select sim mode with a ctl+alt on the project mission selection
-            //if mbed and camera are attached, use them but bypass the position
-            //if mbed & camera not attached, run the sim anyway 
-            //user ctl+alt will set the simulation = true -- else its false
-
-            //timer1 controls the redrawing of the mission display
-            timer1.Enabled = true;
-            timer1.Interval = 200; //timer interval is 200 millisecs
-
-            //numerical integration interval for the simulation
-            deltaT = 3.0 * this.timer1.Interval / 1000.0;
 
             /////////////////////////////////////////////////////////
             //initialize all the flight line geometry
@@ -350,15 +352,16 @@ namespace Waldo_FCS
             FlightLineStartPix = GeoToPix(FLGeometry.FLstartGeo);
             FlightLineEndPix   = GeoToPix(FLGeometry.FLendGeo);
 
-
             //SetAutoScrollMargin up the starting Point for the mission
             double startLat = 0.0;
             double startLon = 0.0;
             double startUTMX = 0.0;
             double startUTMY = 0.0;
 
-            //redo this when not in simulation
-            Point startPlatformPoint = new Point(this.Width / 5, 9 * this.Height / 10);
+            //only need to set the initial position when in the sim -- subsequent positions are incremental to last position
+            //Point startPlatformPoint = new Point(this.Width / 5, 9 * this.Height / 10);
+            Point startPlatformPoint = new Point(FlightLineStartPix.X-10, FlightLineStartPix.Y-10);
+
             if (simulatedMission)
             {
                 ///////////////////////////////////////////////////////////////////////////
@@ -389,11 +392,7 @@ namespace Waldo_FCS
                 simSteer = new SimSteeringRosette();
                 simSteer.Show();
             }
-            else  //todo: mbed interface
-            {
-                //get the platform position from the GPS data
-                //get the speed from the med
-            }
+
 
             //pre-load the crumbtrail array prior to the start point
             for (int i = 0; i < numberCrumbTrailPoints; i++) crumbTrail[i] = startPlatformPoint;
@@ -440,17 +439,33 @@ namespace Waldo_FCS
             //FlyKmlFile.WriteLine(@"</Icon></IconStyle><LabelStyle> <scale>0</scale></LabelStyle></Style>");
 
             realTimeInitiated = true;
-  
-            //if not sim, should wait until we get enough sats ...
-            //show a display with the sat acq information ... 
+
+
+            Stopwatch stepTimer = new Stopwatch();
+            stepTimer.Start();
+            //////////////////////////////////////////////////////////////
+            //  real time loop
+            //////////////////////////////////////////////////////////////
+            while (realTimeInitiated)
+            {
+                stepTimer.Restart();
+
+                realTimeAction();
+                Application.DoEvents();
+
+                Thread.Sleep(100);
+
+                deltaT = 3.0 * ( stepTimer.ElapsedMilliseconds / 1000.0 );
+            }
         }
 
+        ////////////////////////////////////////////////
         //ths controls all the real-time action
-        private void timer1_Tick(object sender, EventArgs e)
+        ////////////////////////////////////////////////
+        private void realTimeAction()
         {
 
-            // TODO:  need to prevent restarting the threat if it hasnt finished  -- can occur if the tick fires again
-            if (!simulatedMission)
+            if (hardwareAttached)
             {
                 getPosVel();
                 debugFile.WriteLine(" posvel numSats = " + navIF_.posVel_.numSV.ToString() );
@@ -458,35 +473,41 @@ namespace Waldo_FCS
 
             missionTimerTicks++;
 
-            // Most of the real-time work is done here.
-            // update the sim state or get the mbed POSVEL.
-            // compute the platform geometry relative to the flight line
-            // determine the time to fire a trgger event for a photocenter
-            // no need to redo this until we have a new PosVel 
-            // For the real time this will come from the GPS receiver
-
+            //compute platform/FL geometry and triggerRequested event 
             prepMissionDisplay();
 
-            if (triggerReQuested && !simulatedMission)  //set in the prior routine 
+            Application.DoEvents();
+
+
+            if (triggerReQuested && hardwareAttached)  //set in the prior routine 
             {
                 debugFile.WriteLine(" trigger fired: " + navIF_.triggerTime.ToString() );
                 getTrigger();
                 triggerReQuested = false;
-
             }
+
+            Application.DoEvents();
+            Thread.Sleep(100);
   
-            //we refresh the screen less frequently than the run the timer
-            //should do ths about 5 Hz ... 
-            if (missionTimerTicks % (1000/timer1.Interval) == 0)
-            {
-                this.Refresh();  //call the Paint event
+            //repaint the screen ...
+            this.Refresh();  //call the Paint event
 
-                //prepare the info for the steering bar
-                int signedError = Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
-                int iTGO = Convert.ToInt32(TGO);
-                int iXTR = Convert.ToInt32(FLGeometry.headingRelativeToFL);
-                steeringBar.DisplaySteeringBar(signedError, iTGO, iXTR);
+            //prepare the info for the steering bar
+            int signedError, iTGO, iXTR;
+            try
+            {
+                signedError = Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
+                iTGO = Convert.ToInt32(TGO);
+                iXTR = Convert.ToInt32(FLGeometry.headingRelativeToFL);
             }
+            catch
+            {
+                signedError = 0;
+                iTGO = 0;
+                iXTR = 0;
+           }
+            steeringBar.DisplaySteeringBar(signedError, iTGO, iXTR);
+
         }
 
         private void prepMissionDisplay()
@@ -503,8 +524,8 @@ namespace Waldo_FCS
             }
             else  //generate the position state from the GPS data
             {
-                platFormPosVel.GeodeticPos.X = navIF_.posVel_.position.lon * utm.Deg2Rad;
-                platFormPosVel.GeodeticPos.Y = navIF_.posVel_.position.lat * utm.Deg2Rad;
+                platFormPosVel.GeodeticPos.X = navIF_.posVel_.position.lon;
+                platFormPosVel.GeodeticPos.Y = navIF_.posVel_.position.lat;
                 platFormPosVel.altitude = navIF_.posVel_.position.height;
                 platFormPosVel.velN = navIF_.posVel_.velocity.velN;
                 platFormPosVel.velE = navIF_.posVel_.velocity.velE;
@@ -513,10 +534,10 @@ namespace Waldo_FCS
                 //convert the GPS-derived geodetic position
                 if (UTMDesignation == null) 
                     utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
-                        ref platFormPosVel.UTMPos.X, ref platFormPosVel.UTMPos.Y, ref UTMDesignation, false);  //compute UTMDesignation
+                        ref platFormPosVel.UTMPos.Y, ref platFormPosVel.UTMPos.X, ref UTMDesignation, false);  //compute UTMDesignation
                 else
                     utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
-                        ref platFormPosVel.UTMPos.X, ref platFormPosVel.UTMPos.Y, ref UTMDesignation, true);  //use a preset UTMDesignation
+                        ref platFormPosVel.UTMPos.Y, ref platFormPosVel.UTMPos.X, ref UTMDesignation, true);  //use a preset UTMDesignation
 
             }
 
@@ -784,7 +805,7 @@ namespace Waldo_FCS
 
                 kmlWriter.Close();
 
-                this.timer1.Stop();     //stop the time so the integration is stopped
+                //this.timer1.Stop();     //stop the time so the integration is stopped
                 simSteer.Close();       //close the rosette steering form
                 steeringBar.Close();    //close the surrogate steering bar
                 this.Close();

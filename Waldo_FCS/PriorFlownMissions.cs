@@ -87,6 +87,7 @@ namespace Waldo_FCS
                 List<String> collectedImages = new List<String>();
 
                 //loop through each of the pre-flown kml files that recorded photocenters
+                //st is the name of a preflown flight line
                 foreach (String st in kmlFlightFiles)
                 {
                     debugFile.WriteLine("getting photocenters from: " + st);
@@ -94,30 +95,37 @@ namespace Waldo_FCS
                     /////////////////////////////////////////////////////////////////////////////////////
                     ///Read the kml file and get the photocenter names ...........
                     /////////////////////////////////////////////////////////////////////////////////////
-                    try //the below can fail if there was a prroly formatted kml file due to an early shutdown
+
+                    XmlTextReader tr = new XmlTextReader(st);
+                    int imagesTaken = 0;
+
+                    if (tr.AttributeCount > 0)
                     {
-                        XmlTextReader tr = new XmlTextReader(st);
-                        while (tr.Read())  //loop through all the kml elements
+                        while (!tr.EOF && tr.Read())  //loop through all the kml elements
                         {
-                            if (tr.IsStartElement() && tr.Name == "Placemark")  //locate each placemark -- these contain the photocenters
+                            if (tr.Name == "Placemark" && tr.IsStartElement())  //locate each placemark -- these contain the photocenters
                             {
-                                while (tr.Read())
+                                while (!tr.EOF && tr.Read())
                                 {
                                     if (tr.IsStartElement() && tr.Name == "name")  //photocenter name stores the MissionNumber_FlightLine_photocenterNumber
                                     {
-                                        tr.Read();
-                                        collectedImages.Add(tr.Value);  //for the collection of all photocenters
+                                        if (!tr.EOF)
+                                        {
+                                            tr.Read();
+                                            collectedImages.Add(tr.Value);  //for the collection of all photocenters
+                                            imagesTaken++;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                    catch  //if the kml was poorly formed -- just continue
+                        
+                    if (imagesTaken == 0)
                     {
-                        MessageBox.Show("poorly formed kml file -- please delete " + st);
-                        debugFile.WriteLine("Bad ml file --- delete.");
-
-                        continue;
+                        MessageBox.Show("poorly formed kml file -- deleting " + st);
+                        debugFile.WriteLine("deleted Bad kml file --- delete.");
+                        File.Delete(st);
                     }
                 }
 

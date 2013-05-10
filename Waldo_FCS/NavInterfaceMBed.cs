@@ -178,7 +178,7 @@ namespace Waldo_FCS
 	        try  //try to create a log file on the PC
 	        {
 		        twLog_ = File.CreateText("C:\\temp\\navMBed.log");
-               LogData("This file contains message traffic between the mbed and PC");
+                LogData("This file contains message traffic between the mbed and PC");
 	        }
 	        catch  //catch the error is its not created
 	        {
@@ -265,7 +265,7 @@ namespace Waldo_FCS
 				        LogData("Close serial port");
 				        serialPort_.Close();
 				        serialPort_= null;
-                        Application.Exit();
+                        //Application.Exit();
 			        }
 		        }
 	        }
@@ -623,6 +623,8 @@ namespace Waldo_FCS
 		        {
 			        //LogData(" found a posVel message " + parseStr);
                     numPosVelMsgs++;
+                    LogData("Received PosVel at " + strEntries[2]);
+
 			        int numSV = Convert.ToInt32(strEntries[3]);
 			        char isReady = Convert.ToChar(strEntries[4]);
 			        if ((numSV > 4) && (numSV < 18) &&

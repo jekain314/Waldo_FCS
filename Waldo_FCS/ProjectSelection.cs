@@ -25,11 +25,10 @@ namespace Waldo_FCS
         String FlightPlanFolder;
         String ProjectName;
         StreamWriter debugFile;
+        bool hardwareAttached = false;
 
         NavInterfaceMBed navIF_;
         CanonCamera camera;
-
-        bool simulatedMission;
 
         public ProjectSelection()
         {
@@ -49,7 +48,7 @@ namespace Waldo_FCS
             /////////////////////////////////////////////////////////////////////////////
 
             //this may be modified if the hardware devices are not attached 
-            simulatedMission = false;
+            hardwareAttached = true;
 
             try  //call the Nav interface constructor
             {
@@ -60,19 +59,15 @@ namespace Waldo_FCS
             {
                 var result = MessageBox.Show("found no attached mbed device \nContinue in Simulation mode?", "Warning!!",
                             MessageBoxButtons.YesNo);
-                if (result == DialogResult.No) Application.Exit();
+                if (result == DialogResult.No) { Application.Exit(); return;  }
                 else
                 {
-                    simulatedMission = true;
+                    hardwareAttached = false;
                 }
-                //souldnt get here --- errors are trapped earlier
-                MessageBox.Show(" failed in the mbed initialization -- exiting ");
-                navIF_ = null;
-                Application.Exit();
             }
 
             //only try to open the camera if we have succssfully attached the mbed device
-            if (!simulatedMission)
+            if (hardwareAttached)
             {
                 try
                 {
@@ -80,7 +75,8 @@ namespace Waldo_FCS
                 }
                 catch
                 {
-                    MessageBox.Show(" failed to open the canon camera ");
+                    MessageBox.Show(" mbed found but no camera found -- exiting ");
+                    Application.Exit();
                 }
             }
 
@@ -90,8 +86,8 @@ namespace Waldo_FCS
             
             //Set the Window Size
             //TODO:  make the windows fill the screen
-            this.Width = 640;
-            this.Height = 480;
+            this.Width = 3*640/2;
+            this.Height = 3*480/2;
 
             //background image for the ProjectSelection Screen is set in the designed properties of the form
             //use a nice looking aerial iomage  here 
@@ -144,7 +140,7 @@ namespace Waldo_FCS
             //project selection is complete -- show the mission selection form
             //this displays a new form where we will select the individual mission from within a project
             //the mbed and camera objects have been opened here but are passed as arguments ...
-            Form missionSelectionForm = new MissionSelection(projSum, FlightPlanFolder, debugFile, navIF_, camera, simulatedMission);
+            Form missionSelectionForm = new MissionSelection(projSum, FlightPlanFolder, debugFile, navIF_, camera, hardwareAttached);
             missionSelectionForm.Show();
         }
 
