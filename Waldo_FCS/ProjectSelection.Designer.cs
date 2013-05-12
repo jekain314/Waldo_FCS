@@ -36,7 +36,7 @@
             // 
             this.button1.BackColor = System.Drawing.Color.White;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(22, 618);
+            this.button1.Location = new System.Drawing.Point(12, 346);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(100, 39);
             this.button1.TabIndex = 0;
@@ -61,7 +61,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::Waldo_FCS.Properties.Resources.resizedBackgroundImage;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(944, 682);
+            this.ClientSize = new System.Drawing.Size(624, 442);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
             this.Name = "ProjectSelection";

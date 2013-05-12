@@ -44,9 +44,8 @@ namespace Waldo_FCS
 
     public struct POSVEL
     {
-	    public double GPStime;		//GPS receiver time (s)
-	    double relTime;		    //time since the beginning of the GPS epoch
-						    //of the last received IMU message (s)
+	    public double GPStime;		    //GPS receiver time (s)
+        public bool timeConverged;
         public int numSV;
         public int solSV;
         public POS position;
@@ -360,33 +359,7 @@ namespace Waldo_FCS
 	        //just print a message to the log file declaring this is an mbed interface
 	        LogData("MBed Interface.");
         }
-        public void Close()
-        {
-	        ////////////////////////////////////////////////////////
-	        //orderly shutdown the mbed serial interface
-	        ////////////////////////////////////////////////////////
-
-	        SendCommandToMBed(NAVMBED_CMDS.RECORD_DATA_OFF);
-	        // Manually initiate these calls to ensure message is sent
-	        // and log confirmation
-	        WriteMessages();
-	        // Allow time for command to be sent
-	        Thread.Sleep(125);
-	        ReadMessages();
-	        Thread.Sleep(125);
-
-	        //  Blocks the current thread until the current WaitHandle receives a signal
-	        navIFMutex_.WaitOne();
-
-	        writeNavFiles_ = false;
-
-	        if (serialPort_ != null)
-	        {
-		        serialPort_ = null;
-	        }
-	        navIFMutex_.ReleaseMutex();
-        }
-
+ 
         public void ReadMessages()
         {
 	        //make sure the serial link has been successfully established 
@@ -405,7 +378,7 @@ namespace Waldo_FCS
 		        return;
 	        }
 
-	        try  //try reading the serial bytes from the port 
+	        try  //try reading the serial bytes from the port k
 	        {
 		        //  Enqueue.  Adds an object to the end of the WorkflowQueue. 
 		        serialBuffer_.Enqueue(serialPort_.ReadLine());
@@ -627,19 +600,18 @@ namespace Waldo_FCS
 
 			        int numSV = Convert.ToInt32(strEntries[3]);
 			        char isReady = Convert.ToChar(strEntries[4]);
-			        if ((numSV > 4) && (numSV < 18) &&
-				        (isReady == 'Y'))
-			        {
+                    if (isReady == 'Y') posVel_.timeConverged = true;
+                    else posVel_.timeConverged = false;
  
-				        posVel_.GPStime = Convert.ToDouble(strEntries[2]);
-				        posVel_.numSV =  posVel_.solSV = numSV;
-				        posVel_.position.lat = Convert.ToDouble(strEntries[5]);
-				        posVel_.position.lon = Convert.ToDouble(strEntries[6]);
-				        posVel_.position.height = Convert.ToDouble(strEntries[7]);
-				        posVel_.velocity.velN = Convert.ToDouble(strEntries[8]);
-				        posVel_.velocity.velE = Convert.ToDouble(strEntries[9]);
-				        posVel_.velocity.velU = Convert.ToDouble(strEntries[10]);
-			        }
+				    posVel_.GPStime = Convert.ToDouble(strEntries[2]);
+				    posVel_.numSV =  posVel_.solSV = numSV;
+				    posVel_.position.lat = Convert.ToDouble(strEntries[5]);
+				    posVel_.position.lon = Convert.ToDouble(strEntries[6]);
+				    posVel_.position.height = Convert.ToDouble(strEntries[7]);
+				    posVel_.velocity.velN = Convert.ToDouble(strEntries[8]);
+				    posVel_.velocity.velE = Convert.ToDouble(strEntries[9]);
+				    posVel_.velocity.velU = Convert.ToDouble(strEntries[10]);
+
                     PosVelMessageReceived = true;
 		        }
 		        else if (strEntries[1] == "TRIGGERTIME")
@@ -661,6 +633,85 @@ namespace Waldo_FCS
 			        }
 		        }
 	        }
+        }
+
+        public void Close()
+        {
+            ////////////////////////////////////////////////////////
+            //orderly shutdown the mbed serial interface
+            ////////////////////////////////////////////////////////
+
+            //LogData(" entering the nav close procedure \n");
+            SendCommandToMBed(NAVMBED_CMDS.GET_MBED_FILE);
+            // Manually initiate these calls to ensure message is sent
+            // and log confirmation
+            WriteMessages();
+            // Allow time for command to be sent
+            Thread.Sleep(125);
+            ReadMessages();
+            ParseMessages();
+
+            FileStream fs = File.Create("c:\\TEMP\\NAV.BIN", 2048, FileOptions.None);
+            BinaryWriter BW = new BinaryWriter(fs);
+            byte[] byteBuff = new byte[2 * 4096];
+
+            int nBytes = 0;
+
+            String msgStr = "ls";
+            writeBuffer_.Enqueue(msgStr);
+            WriteMessages();
+
+            Thread.Sleep(100);
+            ReadMessages();
+
+
+
+            msgStr = "bcat Data/Nav.bin";
+            writeBuffer_.Enqueue(msgStr);
+            WriteMessages();
+            Thread.Sleep(100);
+            ReadMessages();
+
+
+            int maxBytesInBuff = 0;
+
+            Stopwatch transferTime = new Stopwatch();
+            transferTime.Start();
+            while (serialPort_.BytesToRead > 0)
+            {
+                int btr = serialPort_.BytesToRead;
+                if (btr > 4096) btr = 4096;
+                serialPort_.Read(byteBuff, 0, btr);
+                BW.Write(byteBuff, 0, btr);
+                nBytes += btr;
+                if (btr > maxBytesInBuff) maxBytesInBuff = btr;
+                Thread.Sleep(1);
+            }
+            long trTime = transferTime.ElapsedMilliseconds;
+            double bytesPerSec = (nBytes / 1000.0) / (trTime / 1000.0);
+
+            //LogData(" total transfer time (msecs) = " + trTime.ToString() + "bytesPerSec = " + bytesPerSec.ToString("D2"));
+
+            msgStr = "exit";   //get out of the SDshell program
+            writeBuffer_.Enqueue(msgStr);
+            WriteMessages();
+            Thread.Sleep(100);
+            ReadMessages();
+            Thread.Sleep(100);
+
+            //LogData(" send exit to mbed \n");
+            BW.Close(); //LogData(" closed binary writer \n");
+            fs.Close(); //LogData(" closes nav.bin file \n");
+
+            Thread.Sleep(1000);
+
+            serialPort_.Close();
+            LogData(" closed serial port \n");
+
+            Thread.Sleep(10000);
+
+            nBytes = nBytes;
+
         }
 
     }  //end of the class definition

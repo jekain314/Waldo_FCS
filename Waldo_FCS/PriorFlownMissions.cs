@@ -123,7 +123,7 @@ namespace Waldo_FCS
                         
                     if (imagesTaken == 0)
                     {
-                        MessageBox.Show("poorly formed kml file -- deleting " + st);
+                        //MessageBox.Show("poorly formed kml file -- deleting " + st);
                         debugFile.WriteLine("deleted Bad kml file --- delete.");
                         File.Delete(st);
                     }

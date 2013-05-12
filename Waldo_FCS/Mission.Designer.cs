@@ -37,6 +37,7 @@
             this.lblFlightLine = new System.Windows.Forms.Label();
             this.btnRightArrow = new System.Windows.Forms.Button();
             this.btnLeftArrow = new System.Windows.Forms.Button();
+            this.labelWaitingSats = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -139,12 +140,24 @@
             this.btnLeftArrow.UseVisualStyleBackColor = true;
             this.btnLeftArrow.Click += new System.EventHandler(this.btnLeftArrow_Click);
             // 
+            // labelWaitingSats
+            // 
+            this.labelWaitingSats.AutoSize = true;
+            this.labelWaitingSats.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelWaitingSats.ForeColor = System.Drawing.Color.Red;
+            this.labelWaitingSats.Location = new System.Drawing.Point(23, 98);
+            this.labelWaitingSats.Name = "labelWaitingSats";
+            this.labelWaitingSats.Size = new System.Drawing.Size(245, 37);
+            this.labelWaitingSats.TabIndex = 7;
+            this.labelWaitingSats.Text = "Waiting sats ...";
+            // 
             // Mission
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(624, 442);
             this.ControlBox = false;
+            this.Controls.Add(this.labelWaitingSats);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.lblFlightAlt);
             this.Controls.Add(this.lblFlightLines);
@@ -176,5 +189,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button btnRightArrow;
         private System.Windows.Forms.Label lblFlightLine;
+        private System.Windows.Forms.Label labelWaitingSats;
     }
 }

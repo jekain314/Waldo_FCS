@@ -32,6 +32,7 @@ namespace Waldo_FCS
         String FlightPlanFolder;
         ProjectSummary ps;
         StreamWriter FlyKmlFile;
+        StreamWriter PhotoCenterCorrelationFile;
 
         Bitmap bm;
         Image img;
@@ -42,7 +43,7 @@ namespace Waldo_FCS
 
         int mapWidth = 640;
         int mapHeight = 480;
-        double mapScaleFactor = 1.5;
+        //double mapScaleFactor = 1.0;
 
         SteeringBarForm steeringBar;
         bool useManualSimulationSteering = false;
@@ -71,6 +72,8 @@ namespace Waldo_FCS
         Point FlightLineStartPix;
         Point FlightLineEndPix;
 
+        String photoCenterName;
+
         //bool thisMissionWasPreflown;
         bool enableAutoSwitchFlightLine = false;
         String UTMDesignation = null;
@@ -81,6 +84,7 @@ namespace Waldo_FCS
         double deltaT;
         double speed;
         bool realTimeInitiated = false;
+        bool firstGPSPositionAvailable = false;
 
         UTM2Geodetic utm;
 
@@ -94,9 +98,8 @@ namespace Waldo_FCS
         //Mission specific updated flight line list 
         List<endPoints> FLUpdateList;
 
-       // Thread PosVelMessageThread;         //handles PosVel mbed request and receipt messages
-        //Thread TriggerRequestThread;        //handles trigger mbed request and receipt messages
         Thread ImageReceivedAtSDcardThread; //handles image detected to be placed on the camera SD card
+
         bool waitingForPOSVEL;              //set to false when we receive a PosVel message from mbed
         bool waitingForTriggerResponse;
         long elapsedTimeToTrigger;
@@ -136,8 +139,10 @@ namespace Waldo_FCS
             ib = ps.msnSum[missionNumber].MissionImage;  //placeholder for the project image bounds
 
             //multiplier used for pix-to-geodetic conversion for the project map -- scales lat/lon to pixels
-            lon2PixMultiplier =  mapScaleFactor * mapWidth  / (ib.eastDeg - ib.westDeg);
-            lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            //lon2PixMultiplier = mapScaleFactor * mapWidth / (ib.eastDeg - ib.westDeg);
+            //lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            lon2PixMultiplier =  mapWidth / (ib.eastDeg - ib.westDeg);
+            lat2PixMultiplier = -mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
 
             platFormPosVel = new PosVel();
             platFormPosVel.GeodeticPos = new PointD(0.0, 0.0);
@@ -148,6 +153,8 @@ namespace Waldo_FCS
 
             ImageReceivedAtSDcardThread = new Thread(new ThreadStart(ImageAvaiableThreadWorker));
             ImageReceivedAtSDcardThread.Priority = ThreadPriority.BelowNormal;
+
+            labelWaitingSats.Visible = false;
         }
 
         void getPosVel()
@@ -193,7 +200,9 @@ namespace Waldo_FCS
                     elapsedTimeToTrigger = timeFromTrigger.ElapsedMilliseconds;
                     debugFile.WriteLine(" image ready: name = " + imageFilenameWithPath + "triggerTime = " + 
                         navIF_.triggerTime.ToString() + "DelT= " + timeFromTrigger.ElapsedMilliseconds.ToString());
+                    PhotoCenterCorrelationFile.WriteLine(navIF_.triggerTime.ToString() + "  " + photoCenterName + "  " + imageFilenameWithPath);
                     timeFromTrigger.Reset();
+                    camera.resetImageReady();
                 }
             }
         }
@@ -204,30 +213,26 @@ namespace Waldo_FCS
             this.DoubleBuffered = true;
 
             //set the mission image
-            this.Width  = (int)(mapScaleFactor * 640);
-            this.Height = (int)(mapScaleFactor * 480);
+            //this.Width = (int)(mapScaleFactor * 640);
+            //this.Height = (int)(mapScaleFactor * 480);
+            this.Width = 640;    //pixel height of the form
+            this.Height = 480;   //pixel width of the form
 
             //this.btnMinus.Visible = false;
             //this.btnPlus.Visible = false;
             //this.lblFlightLine.Visible = false;
 
-            //load the Project Map from the flight maps folder
-
+            //load the Project Map from the flight maps folder -- prepared with the mission planner
             String MissionMapPNG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
             String MissionMapJPG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".jpg";
 
             if (File.Exists(MissionMapPNG))
-            {
                 img = Image.FromFile(MissionMapPNG); //get an image object from the stored file
-            }
             else if (File.Exists(MissionMapJPG))
-            {
                 img = Image.FromFile(MissionMapJPG); //get an image object from the stored file
-            }
             else
-            {
                 MessageBox.Show(" there is no mission map:  \n" + MissionMapJPG);
-            }
+
             //must convert this image into a non-indexed image in order to draw on it -- saved file PixelFormat is "Format8bppindexed"
             bm = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             Graphics g = Graphics.FromImage(bm);  //create a graphics object
@@ -246,7 +251,7 @@ namespace Waldo_FCS
             //above objects used within the Paint event for this MissionSelection Form to regenerate the flight lines 
 
             this.BackgroundImage = img;
-            this.BackgroundImageLayout = ImageLayout.Stretch;
+            //this.BackgroundImageLayout = ImageLayout.Stretch;
             g.DrawImage(img, 0, 0);     //img is the mission background image defined above
         }
 
@@ -285,8 +290,19 @@ namespace Waldo_FCS
                 g.DrawEllipse(new Pen(Color.Black, 1), pt.X-3, pt.Y-3, 6, 6);
 
                 //crumb trail graphic -- could use a .net queue object for this.
-                for (int i=1; i<numberCrumbTrailPoints; i++) crumbTrail[i-1] = crumbTrail[i];  //reorder the crumbtrail
+
+                if (!firstGPSPositionAvailable)
+                {
+                    //pre-load the crumbtrail array prior to the start point
+                    for (int i = 0; i < numberCrumbTrailPoints; i++) crumbTrail[i] = pt;
+                    firstGPSPositionAvailable = true;
+                }
+                else
+                {
+                    for (int i = 1; i < numberCrumbTrailPoints; i++) crumbTrail[i - 1] = crumbTrail[i];  //reorder the crumbtrail
+                }
                 crumbTrail[numberCrumbTrailPoints - 1] = pt;  //put most recent at the end
+
                 g.DrawLines(new Pen(Color.Black, 2), crumbTrail);  //plot the crumb trail points
 
                 //plot the photocenter trigger points for this flight line.
@@ -344,7 +360,7 @@ namespace Waldo_FCS
             this.lblFlightLine.Text = currentFlightLine.ToString("D2");
 
             currentFlightlineIsOpen = false; // becomes true when we capture it
-            FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);
+            FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);  //from Mission BtnClick
 
             semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
             semiInfiniteFlightLineEndPix = GeoToPix(FLGeometry.semiInfiniteFLendGeo);
@@ -415,6 +431,10 @@ namespace Waldo_FCS
             String MissionDataFolder = FlightPlanFolder + ps.ProjectName + @"\Mission_" + missionNumber.ToString("D3") +  @"\Data\" ;
             if (!Directory.Exists(MissionDataFolder)) Directory.CreateDirectory(MissionDataFolder);
 
+            PhotoCenterCorrelationFile = new StreamWriter(MissionDataFolder + "PhotoCenterCorrelation.txt");
+            PhotoCenterCorrelationFile.AutoFlush = true;
+
+            //fn is the extended mission name formed from the mission_year_month_day_UTCSec
             String fn = ps.ProjectName + "_" + missionNumber.ToString("D2") + "_" +
                 DateTime.UtcNow.Year.ToString("D4")+  
                 DateTime.UtcNow.Month.ToString("D2")+  
@@ -438,11 +458,13 @@ namespace Waldo_FCS
             //FlyKmlFile.WriteLine(@"<href>http://maps.google.com/mapfiles/kml/pal4/icon57.png</href>");
             //FlyKmlFile.WriteLine(@"</Icon></IconStyle><LabelStyle> <scale>0</scale></LabelStyle></Style>");
 
+            //open the imagery folder
+
             realTimeInitiated = true;
-
-
             Stopwatch stepTimer = new Stopwatch();
             stepTimer.Start();
+            ImageReceivedAtSDcardThread.Start();
+
             //////////////////////////////////////////////////////////////
             //  real time loop
             //////////////////////////////////////////////////////////////
@@ -473,40 +495,50 @@ namespace Waldo_FCS
 
             missionTimerTicks++;
 
-            //compute platform/FL geometry and triggerRequested event 
-            prepMissionDisplay();
-
-            Application.DoEvents();
-
-
-            if (triggerReQuested && hardwareAttached)  //set in the prior routine 
+            if (navIF_.posVel_.timeConverged)
             {
-                debugFile.WriteLine(" trigger fired: " + navIF_.triggerTime.ToString() );
-                getTrigger();
-                triggerReQuested = false;
+                labelWaitingSats.Visible = false;
+
+                //compute platform/FL geometry and triggerRequested event 
+                prepMissionDisplay();
+
+                Application.DoEvents();
+
+
+                if (triggerReQuested && hardwareAttached)  //set in the prior routine 
+                {
+                    debugFile.WriteLine(" trigger fired: " + navIF_.triggerTime.ToString());
+                    getTrigger();
+                    triggerReQuested = false;
+                }
+
+                Application.DoEvents();
+                Thread.Sleep(100);
+
+                //repaint the screen ...
+                this.Refresh();  //call the Paint event
+
+                //prepare the info for the steering bar
+                int signedError, iTGO, iXTR;
+                try
+                {
+                    signedError = Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
+                    iTGO = Convert.ToInt32(TGO);
+                    iXTR = Convert.ToInt32(FLGeometry.headingRelativeToFL);
+                }
+                catch
+                {
+                    signedError = 0;
+                    iTGO = 0;
+                    iXTR = 0;
+                }
+                steeringBar.DisplaySteeringBar(signedError, iTGO, iXTR);
             }
-
-            Application.DoEvents();
-            Thread.Sleep(100);
-  
-            //repaint the screen ...
-            this.Refresh();  //call the Paint event
-
-            //prepare the info for the steering bar
-            int signedError, iTGO, iXTR;
-            try
+            else
             {
-                signedError = Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
-                iTGO = Convert.ToInt32(TGO);
-                iXTR = Convert.ToInt32(FLGeometry.headingRelativeToFL);
+                labelWaitingSats.Visible = true;
+                labelWaitingSats.Text = "waiting sats ... " + navIF_.posVel_.numSV + " locked";
             }
-            catch
-            {
-                signedError = 0;
-                iTGO = 0;
-                iXTR = 0;
-           }
-            steeringBar.DisplaySteeringBar(signedError, iTGO, iXTR);
 
         }
 
@@ -538,7 +570,6 @@ namespace Waldo_FCS
                 else
                     utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
                         ref platFormPosVel.UTMPos.Y, ref platFormPosVel.UTMPos.X, ref UTMDesignation, true);  //use a preset UTMDesignation
-
             }
 
             //////////////////////////////////////////////////////////////////////////////////
@@ -546,17 +577,19 @@ namespace Waldo_FCS
             /////////////////////////////////////////////////////////////////////////////////
             FLGeometry.getPlatformToFLGeometry(platFormPosVel);
 
-            /////////////////////////////////////////////////////////
-            //test for the flight line capture event
-            /////////////////////////////////////////////////////////
-            if (    Math.Abs( FLGeometry.PerpendicularDistanceToFL) < FLerrorTolerance &&   //inside the error box
-                    Math.Abs(FLGeometry.headingRelativeToFL) < FLheadingTolerance &&        //heading along the flightline
-                    !currentFlightlineIsOpen)                                               //flight line has NOT been captured
+            ////////////////////////////////////////////////////////////////////////
+            //test for the flight line capture event -- error tolerance = 100 m
+            ////////////////////////////////////////////////////////////////////////
+            if (Math.Abs(FLGeometry.PerpendicularDistanceToFL) < FLerrorTolerance &&   //inside the error box
+                    Math.Abs(FLGeometry.headingRelativeToFL) < FLheadingTolerance &&   //heading along the flightline
+                    FLGeometry.distanceFromStartAlongFL <= FLGeometry.FLlengthMeters &&   //must be inside the FL length
+                    FLGeometry.distanceFromStartAlongFL > 0.0 &&   //and not before the FL
+                    !currentFlightlineIsOpen)                                                         //flight line has NOT been captured
             {
                 currentFlightlineIsOpen = true;  //set the capture event
                 numPicsThisFL = 0;
                 triggerPoints = new Point[FLGeometry.numPhotoCenters];  //tota number of photoCenters this line
-                enableAutoSwitchFlightLine = false;  
+                enableAutoSwitchFlightLine = false;
 
                 //note: its possible to capture the line while inside the line endpoints
                 if (FLGeometry.FightLineTravelDirection > 0)  //moving from start-to-end (south to north for NS lines)
@@ -573,10 +606,14 @@ namespace Waldo_FCS
                 }
 
                 if (currentPhotocenter < 0) currentPhotocenter = 0;
-                if (currentPhotocenter > (FLGeometry.numPhotoCenters-1)) currentPhotocenter = FLGeometry.numPhotoCenters-1;
+                if (currentPhotocenter > (FLGeometry.numPhotoCenters - 1)) currentPhotocenter = FLGeometry.numPhotoCenters - 1;
 
                 //this is for the simulation --- where we auto-steer in the turns -- here we turn the dogbone off
                 inDogbone = false;
+            }
+            else
+            {
+                currentFlightlineIsOpen = false;
             }
 
             //////////////////////////////////////////////////////////////////////
@@ -606,12 +643,16 @@ namespace Waldo_FCS
 
                         //we are on the line so perform a camera trigger
                         triggerPoints[numPicsThisFL] = GeoToPix(platFormPosVel.GeodeticPos);  //fill this so we can graph the camera trigger points on the display
-                        currentPhotocenter = Convert.ToInt32(FLGeometry.distanceFromStartAlongFL/ps.downrangeTriggerSpacing);  //increment one direction and decrement the other direction
+                        // photocenters labeled 0 through N-1 for N photocenters
+                        // if we are here distanceFromStartAlongFL is > 0 and < FLlength
+                        // mission plan causes FLLength/downrangeTriggerSpacing = an integer
+                        // if there ae N segments, we will have N+1 photocenters
+                        currentPhotocenter = Convert.ToInt32(FLGeometry.distanceFromStartAlongFL/ps.downrangeTriggerSpacing + 0.5);  //increment one direction and decrement the other direction
 
                         //write the kml file record for this image
                         int offset = FLUpdateList[currentFlightLine].photoCenterOffset;  //this accounts for a start photocenter that was adjusted per a reflown line
                         //"offset" forces all photocenters toi have the same naming convention based on their original spatial locations in the mission plan
-                        String photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" +  (offset + currentPhotocenter).ToString("D3");
+                        photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" +  (offset + currentPhotocenter).ToString("D3");
 
                         kmlWriter.writePhotoCenterRec(missionNumber, currentFlightLine, offset, currentPhotocenter, platFormPosVel);
                         //FlyKmlFile.WriteLine(String.Format("<Placemark> <name>" + photoCenterName +
@@ -631,7 +672,7 @@ namespace Waldo_FCS
                             //what do we do if we complete the last flight line???
                             //  (1) if we are in the sim -- go back to flightline zero
                             //  (2) if we are flying, reset to an incompleted line
-                            currentFlightLine = 0;
+                            currentFlightLine = -1;   //this is incremented +1 below ti get back to FL=0
                         }
 
                         //we are at the end of the flightline
@@ -643,7 +684,8 @@ namespace Waldo_FCS
                         this.lblFlightLine.Text = currentFlightLine.ToString("D2");
 
                         //get the flightline geometry for this next flightline
-                        FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);
+                        FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps); //from mission prepMissionDisplay
+                        FLGeometry.getPlatformToFLGeometry(platFormPosVel);
 
                         //flightlne endpoints in pixel units
                         semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
@@ -712,6 +754,17 @@ namespace Waldo_FCS
                 }
             }
             if (Math.Abs(TGO) > 999.0) TGO = 999.0;  // restrict this to three digits for the presentation on the steering bar
+
+            String msg = "FL= " + currentFlightLine.ToString() + " tgo= " + TGO.ToString("F2") + 
+                         " numPics= " + numPicsThisFL.ToString() +
+                         " vMag = " + FLGeometry.velMag.ToString("F2") +
+                         " alongFL= " + FLGeometry.distanceFromStartAlongFL.ToString("F2") +
+                         " toFL= " + FLGeometry.PerpendicularDistanceToFL.ToString("F2") +
+                         " VelAlong= " + FLGeometry.velocityAlongFlightLine.ToString("F2") +
+                         " HdgToFL= " + FLGeometry.headingRelativeToFL.ToString("F2") +
+                         " lat= " + platFormPosVel.GeodeticPos.Y.ToString("F5") + " lon= " + platFormPosVel.GeodeticPos.X.ToString("F5") ;
+
+            debugFile.WriteLine(msg);
 
         }  //end of  prepMissionDisplay Procedure
 
@@ -800,14 +853,16 @@ namespace Waldo_FCS
             ////////////////////////////////////////////////////////////////////////////////////
 
             //close the simulation rosette steering form
-            if (realTimeInitiated && simulatedMission)
+            if (realTimeInitiated /*&& simulatedMission*/)
             {
 
+                navIF_.Close();
                 kmlWriter.Close();
+                PhotoCenterCorrelationFile.Close();
 
                 //this.timer1.Stop();     //stop the time so the integration is stopped
-                simSteer.Close();       //close the rosette steering form
-                steeringBar.Close();    //close the surrogate steering bar
+                if (simSteer != null)    simSteer.Close();       //close the rosette steering form
+                if (steeringBar != null) steeringBar.Close();    //close the surrogate steering bar
                 this.Close();
             }
         }
@@ -819,8 +874,8 @@ namespace Waldo_FCS
 
             this.lblFlightLine.Text = currentFlightLine.ToString("D2");
             currentFlightlineIsOpen = false; // becomes true when we capture it
-            FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);
-            semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
+            FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);  //left arrow
+             semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
             semiInfiniteFlightLineEndPix = GeoToPix(FLGeometry.semiInfiniteFLendGeo);
             FlightLineStartPix = GeoToPix(FLGeometry.FLstartGeo);
             FlightLineEndPix = GeoToPix(FLGeometry.FLendGeo);
@@ -833,7 +888,7 @@ namespace Waldo_FCS
 
             this.lblFlightLine.Text = currentFlightLine.ToString("D2");
             currentFlightlineIsOpen = false; // becomes true when we capture it
-            FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);
+            FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);  //Right arrow
             semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
             semiInfiniteFlightLineEndPix = GeoToPix(FLGeometry.semiInfiniteFLendGeo);
             FlightLineStartPix = GeoToPix(FLGeometry.FLstartGeo);

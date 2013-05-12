@@ -30,11 +30,11 @@ namespace Waldo_FCS
         public void writePhotoCenterRec(int missionNumber, int currentFlightLine, int offset, int currentPhotocenter, PosVel platFormPosVel)
         {
 
-                String photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" + (offset + currentPhotocenter).ToString("D3");
+            String photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" + (offset + currentPhotocenter).ToString("D3");
 
-                FlyKmlFile.WriteLine(String.Format("<Placemark> <name>" + photoCenterName +
-                    " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2}</coordinates> </Point> </Placemark>",
-                     platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, 0));
+            FlyKmlFile.WriteLine(String.Format("<Placemark> <name>" + photoCenterName +
+                " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2}</coordinates> </Point> </Placemark>",
+                    platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, 0));
 
         }
 

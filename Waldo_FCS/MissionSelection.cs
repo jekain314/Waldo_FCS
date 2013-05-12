@@ -29,7 +29,7 @@ namespace Waldo_FCS
         //tis is set by the web-based planning program
         int mapWidth  = 640;
         int mapHeight = 480;
-        double mapScaleFactor = 1.5;  ///scale the mission planning map by this value
+        //double mapScaleFactor = 1.5;  ///scale the mission planning map by this value
 
         Mission MissionForm;  //the mission form where flight lines are shown
 
@@ -69,8 +69,10 @@ namespace Waldo_FCS
 
             //multiplier used for pix-to-geodetic conversion for the project map -- scales lat/lon to pixels
             // TODO:  ugly --- cant we do this exactly???
-            lon2PixMultiplier =  mapScaleFactor * mapWidth  / (ib.eastDeg  - ib.westDeg);
-            lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            //lon2PixMultiplier = mapScaleFactor * mapWidth / (ib.eastDeg - ib.westDeg);
+            //lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            lon2PixMultiplier =  mapWidth  / (ib.eastDeg - ib.westDeg);
+            lat2PixMultiplier = -mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
 
             //create the project polygon in pixel units -- once
             for (int i = 0; i < ps.ProjectPolygon.Count; i++)
@@ -93,8 +95,10 @@ namespace Waldo_FCS
 
             //set the size of the projecr selection form in pixels
             //note that this may be larger than the project map
-            this.Width  = (int)(mapScaleFactor * (double)640);
-            this.Height = (int)(mapScaleFactor * (double)480);
+            //this.Width = (int)(mapScaleFactor * (double)640);
+            //this.Height = (int)(mapScaleFactor * (double)480);
+            this.Width  = 640;
+            this.Height = 480;
 
             //load the Project Map from the flight maps folder
             //  NOTE the map is a png  !!!!
@@ -179,7 +183,8 @@ namespace Waldo_FCS
         {
             System.Drawing.Graphics g = this.CreateGraphics();
             //draw the map with project polygon and planned flight lines
-            g.DrawImage(img, new Rectangle(0, 0, 3*640/2, 3*480/2)); //now draw the original indexed image (from the file) to the non-indexed image
+            //g.DrawImage(img, new Rectangle(0, 0, 3 * 640 / 2, 3 * 480 / 2)); //now draw the original indexed image (from the file) to the non-indexed image
+            g.DrawImage(img, new Rectangle(0, 0, 640, 480)); //now draw the original indexed image (from the file) to the non-indexed image
 
             //draw all the mission polygons
             for (int i = 0; i < ps.msnSum.Count; i++)

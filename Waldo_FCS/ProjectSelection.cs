@@ -86,8 +86,10 @@ namespace Waldo_FCS
             
             //Set the Window Size
             //TODO:  make the windows fill the screen
-            this.Width = 3*640/2;
-            this.Height = 3*480/2;
+            //this.Width = 3 * 640 / 2;
+            //this.Height = 3 * 480 / 2;
+            this.Width = 640;
+            this.Height = 480;
 
             //background image for the ProjectSelection Screen is set in the designed properties of the form
             //use a nice looking aerial iomage  here 
@@ -128,7 +130,8 @@ namespace Waldo_FCS
             ProjectSummary  projSum = ps.GetProjectSummary();
 
             //open a file debug file;
-            debugFile = new StreamWriter(FlightPlanFolder + projSum.ProjectName + @"debugFile.txt");
+            String debugFilename = FlightPlanFolder + projSum.ProjectName + @"\debugFile.txt";
+            debugFile = new StreamWriter(debugFilename);
             debugFile.AutoFlush = true;
             debugFile.WriteLine("Opened Debug session for Project: " + projSum.ProjectName);
 

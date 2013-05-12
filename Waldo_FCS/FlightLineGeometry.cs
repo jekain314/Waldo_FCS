@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Waldo_FCS
 {
@@ -28,6 +29,7 @@ namespace Waldo_FCS
         public double velocityAlongFlightLine;
         public int numPhotoCenters;
         public double LOSRate;
+        public double velMag;
 
         public double headingRelativeToFL;          // +/- 90 deg
         public double PerpendicularDistanceToFL;    //unsigned
@@ -65,7 +67,7 @@ namespace Waldo_FCS
             utm.LLtoUTM(FLstartGeo.Y * Deg2Rad, FLstartGeo.X * Deg2Rad, ref FLstartUTM.Y, ref FLstartUTM.X, ref ps.UTMZone, true);
             utm.LLtoUTM(FLendGeo.Y   * Deg2Rad, FLendGeo.X   * Deg2Rad, ref FLendUTM.Y,   ref FLendUTM.X,   ref ps.UTMZone, true);
 
-            //next flight line data
+            //next flight line data -- what happens on the last flightlne ??
             if (flightLineNumber < (ps.msnSum[missionNumber].numberOfFlightlines-1) )
             {
                 PointD FLP1endGeo   = ps.msnSum[missionNumber].FlightLinesCurrentPlan[flightLineNumber+1].end;
@@ -98,7 +100,7 @@ namespace Waldo_FCS
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             //must be computed for each steering bar command cycle .... 
             //do these computations in UTM rectilinear coordinates
-            //each flight line has a start and end as defined back in the original mission planning
+            //each flight line has a geodetic start and end as defined back in the original mission planning
             //this initial layout does not change over the course of a Project
             //however, the geoscanne will allow flight lines to be flown from the start-to-end or end-to-start
             //the platform dynamics will be used to define the flightlline flight direction
@@ -129,8 +131,15 @@ namespace Waldo_FCS
             //sign is positive if the platform is to the right of the flightline (start-to-end)
             PerpendicularDistanceToFL = Math.Sqrt(dY * dY + dX * dX) * Math.Sign(crp);
 
-            //velocity direction will provide the flight line travel direction 
-            double velMag = Math.Sqrt(platform.velE * platform.velE + platform.velN * platform.velN);
+            //prevent divide-by-zero
+            if (Math.Abs(platform.velE) < 0.01 && Math.Abs(platform.velN) < 0.01)
+            {
+                platform.velE = 0.01;
+                platform.velN = 0.01;
+            }
+
+            velMag = Math.Sqrt(platform.velE * platform.velE + platform.velN * platform.velN);
+            if (velMag < 0.10) velMag = 0.10;
             PointD velocityUnit = new PointD(platform.velE / velMag, platform.velN / velMag);
 
             //velocity along the flight line
@@ -149,6 +158,7 @@ namespace Waldo_FCS
             headingRelativeToFL = Math.Asin(vcu) * Rad2Deg;  //this will be limited +/- 90 deg
 
             FightLineTravelDirection = Math.Sign(vdu);      //+1 if along start-to-end and -1 if along end-to-start direction
+
 
             //////////////////////////////////////////////
             //do this only for the simulation
