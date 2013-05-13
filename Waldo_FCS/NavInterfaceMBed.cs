@@ -84,7 +84,10 @@ namespace Waldo_FCS
         public double triggerTime;
         public int numPosVelMsgs = 0;
         public bool PosVelMessageReceived = false;
-        
+
+        public long trTime;
+        public double bytesPerSec;
+        public int maxBytesInBuff;
 
         public NavInterfaceMBed()
         {
@@ -676,19 +679,24 @@ namespace Waldo_FCS
             int maxBytesInBuff = 0;
 
             Stopwatch transferTime = new Stopwatch();
+            Stopwatch testForBytes = new Stopwatch();
+
             transferTime.Start();
-            while (serialPort_.BytesToRead > 0)
+            testForBytes.Start();   //timer to terminate the read loop if havent seen a byte in 1 sec
+            while (testForBytes.ElapsedMilliseconds < 1000)
             {
                 int btr = serialPort_.BytesToRead;
+                if (btr == 0) continue;
                 if (btr > 4096) btr = 4096;
                 serialPort_.Read(byteBuff, 0, btr);
                 BW.Write(byteBuff, 0, btr);
                 nBytes += btr;
                 if (btr > maxBytesInBuff) maxBytesInBuff = btr;
-                Thread.Sleep(1);
+                testForBytes.Restart();  //reset timer if we have received a byte
+                //Thread.Sleep(20);
             }
-            long trTime = transferTime.ElapsedMilliseconds;
-            double bytesPerSec = (nBytes / 1000.0) / (trTime / 1000.0);
+            trTime = transferTime.ElapsedMilliseconds;
+            bytesPerSec = (nBytes / 1000.0) / (trTime / 1000.0);
 
             //LogData(" total transfer time (msecs) = " + trTime.ToString() + "bytesPerSec = " + bytesPerSec.ToString("D2"));
 
@@ -703,12 +711,12 @@ namespace Waldo_FCS
             BW.Close(); //LogData(" closed binary writer \n");
             fs.Close(); //LogData(" closes nav.bin file \n");
 
-            Thread.Sleep(1000);
+            Thread.Sleep(100);
 
             serialPort_.Close();
             LogData(" closed serial port \n");
 
-            Thread.Sleep(10000);
+            Thread.Sleep(100);
 
             nBytes = nBytes;
 
