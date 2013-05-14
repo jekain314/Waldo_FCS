@@ -666,21 +666,20 @@ namespace Waldo_FCS
 
             Thread.Sleep(100);
             ReadMessages();
-
-
+            ParseMessages();
+            Thread.Sleep(100);
 
             msgStr = "bcat Data/Nav.bin";
             writeBuffer_.Enqueue(msgStr);
             WriteMessages();
-            Thread.Sleep(100);
+            Thread.Sleep(300);
             ReadMessages();
+            ParseMessages();
 
-
-            int maxBytesInBuff = 0;
+            maxBytesInBuff = 0;
 
             Stopwatch transferTime = new Stopwatch();
             Stopwatch testForBytes = new Stopwatch();
-
             transferTime.Start();
             testForBytes.Start();   //timer to terminate the read loop if havent seen a byte in 1 sec
             while (testForBytes.ElapsedMilliseconds < 1000)
@@ -698,6 +697,7 @@ namespace Waldo_FCS
             trTime = transferTime.ElapsedMilliseconds;
             bytesPerSec = (nBytes / 1000.0) / (trTime / 1000.0);
 
+
             //LogData(" total transfer time (msecs) = " + trTime.ToString() + "bytesPerSec = " + bytesPerSec.ToString("D2"));
 
             msgStr = "exit";   //get out of the SDshell program
@@ -705,20 +705,26 @@ namespace Waldo_FCS
             WriteMessages();
             Thread.Sleep(100);
             ReadMessages();
+            ParseMessages();
             Thread.Sleep(100);
 
-            //LogData(" send exit to mbed \n");
             BW.Close(); //LogData(" closed binary writer \n");
             fs.Close(); //LogData(" closes nav.bin file \n");
 
-            Thread.Sleep(100);
+            Thread.Sleep(1000);
+            ReadMessages();
+            ParseMessages();
+
 
             serialPort_.Close();
             LogData(" closed serial port \n");
+            ReadMessages();
+            ParseMessages();
 
-            Thread.Sleep(100);
 
-            nBytes = nBytes;
+            Thread.Sleep(1000);
+            ReadMessages();
+            ParseMessages();
 
         }
 

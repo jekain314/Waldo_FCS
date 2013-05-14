@@ -198,8 +198,8 @@ namespace Waldo_FCS
                 if (camera.ImageReady(out imageFilenameWithPath))
                 {
                     elapsedTimeToTrigger = timeFromTrigger.ElapsedMilliseconds;
-                    debugFile.WriteLine(" image ready: name = " + imageFilenameWithPath + "triggerTime = " + 
-                        navIF_.triggerTime.ToString() + "DelT= " + timeFromTrigger.ElapsedMilliseconds.ToString());
+                    debugFile.WriteLine(" image ready: name = " + imageFilenameWithPath + "  triggerTime = " + 
+                        navIF_.triggerTime.ToString() + "  DelT= " + timeFromTrigger.ElapsedMilliseconds.ToString());
                     PhotoCenterCorrelationFile.WriteLine(navIF_.triggerTime.ToString() + "  " + photoCenterName + "  " + imageFilenameWithPath);
                     timeFromTrigger.Reset();
                     camera.resetImageReady();
@@ -398,7 +398,7 @@ namespace Waldo_FCS
                 platFormPosVel.GeodeticPos.Y = startLat;
 
                 //////////////////////////////////////////////////////////
-                speed = 51.4;   // 100 knots
+                speed = 25.0;//51.4;   // 100 knots
                 //////////////////////////////////////////////////////////
 
                 platFormPosVel.velD = 0.0;
@@ -586,6 +586,8 @@ namespace Waldo_FCS
                     FLGeometry.distanceFromStartAlongFL > 0.0 &&   //and not before the FL
                     !currentFlightlineIsOpen)                                                         //flight line has NOT been captured
             {
+
+                debugFile.WriteLine(" flight line capture event ");
                 currentFlightlineIsOpen = true;  //set the capture event
                 numPicsThisFL = 0;
                 triggerPoints = new Point[FLGeometry.numPhotoCenters];  //tota number of photoCenters this line
@@ -602,7 +604,7 @@ namespace Waldo_FCS
                     //however the photocenters are numbered from 0-numPhotoCenters-1 .... thus we have to put the "-2" at the end
                     currentPhotocenter =
                        FLGeometry.numPhotoCenters -
-                       Convert.ToInt32((FLGeometry.FLlengthMeters - FLGeometry.distanceFromStartAlongFL) / ps.downrangeTriggerSpacing) - 2;
+                       Convert.ToInt32((FLGeometry.FLlengthMeters - FLGeometry.distanceFromStartAlongFL) / ps.downrangeTriggerSpacing) - 1;
                 }
 
                 if (currentPhotocenter < 0) currentPhotocenter = 0;
@@ -611,10 +613,10 @@ namespace Waldo_FCS
                 //this is for the simulation --- where we auto-steer in the turns -- here we turn the dogbone off
                 inDogbone = false;
             }
-            else
-            {
-                currentFlightlineIsOpen = false;
-            }
+            //else
+            //{
+            //    currentFlightlineIsOpen = false;
+            //}
 
             //////////////////////////////////////////////////////////////////////
             //test for a camera trigger event and end of a flight line
@@ -647,7 +649,7 @@ namespace Waldo_FCS
                         // if we are here distanceFromStartAlongFL is > 0 and < FLlength
                         // mission plan causes FLLength/downrangeTriggerSpacing = an integer
                         // if there ae N segments, we will have N+1 photocenters
-                        currentPhotocenter = Convert.ToInt32(FLGeometry.distanceFromStartAlongFL/ps.downrangeTriggerSpacing + 0.5);  //increment one direction and decrement the other direction
+                        currentPhotocenter = Convert.ToInt32(FLGeometry.distanceFromStartAlongFL/ps.downrangeTriggerSpacing);  //increment one direction and decrement the other direction
 
                         //write the kml file record for this image
                         int offset = FLUpdateList[currentFlightLine].photoCenterOffset;  //this accounts for a start photocenter that was adjusted per a reflown line
@@ -658,6 +660,11 @@ namespace Waldo_FCS
                         //FlyKmlFile.WriteLine(String.Format("<Placemark> <name>" + photoCenterName +
                         //    " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2}</coordinates> </Point> </Placemark>",
                         //    platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y,0) );
+
+                        debugFile.WriteLine(currentPhotocenter.ToString() + "  DistAlongFL = " + FLGeometry.distanceFromStartAlongFL.ToString("F1") +
+                             "  DRTriggerSpacing = " + ps.downrangeTriggerSpacing.ToString("F2") +
+                             "  PC*TS = " + (currentPhotocenter * ps.downrangeTriggerSpacing).ToString("F2"));
+
 
                         numPicsThisFL++;  //always counts up
                         currentPhotocenter += FLGeometry.FightLineTravelDirection;
@@ -677,6 +684,7 @@ namespace Waldo_FCS
 
                         //we are at the end of the flightline
                         currentFlightlineIsOpen = false;  //close this flight line
+                        debugFile.WriteLine(" end of flight line event ");
 
                         //increment to the next flight line
                         currentFlightLine++;
@@ -856,7 +864,15 @@ namespace Waldo_FCS
             if (realTimeInitiated /*&& simulatedMission*/)
             {
 
+                realTimeInitiated = false;
+
+                labelWaitingSats.Visible = true;
+                labelWaitingSats.Text = "downloading nav file to PC ... ";
+                Application.DoEvents();
                 navIF_.Close();
+                labelWaitingSats.Visible = true;
+                Application.DoEvents();
+
                 kmlWriter.Close();
                 PhotoCenterCorrelationFile.Close();
 
