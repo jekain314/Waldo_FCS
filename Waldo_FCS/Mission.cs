@@ -398,7 +398,7 @@ namespace Waldo_FCS
                 platFormPosVel.GeodeticPos.Y = startLat;
 
                 //////////////////////////////////////////////////////////
-                speed = 25.0;//51.4;   // 100 knots
+                speed = 16.0;// 51.4;   // 100 knots
                 //////////////////////////////////////////////////////////
 
                 platFormPosVel.velD = 0.0;
@@ -463,7 +463,8 @@ namespace Waldo_FCS
             realTimeInitiated = true;
             Stopwatch stepTimer = new Stopwatch();
             stepTimer.Start();
-            ImageReceivedAtSDcardThread.Start();
+
+            if (hardwareAttached) ImageReceivedAtSDcardThread.Start();
 
             //////////////////////////////////////////////////////////////
             //  real time loop
@@ -495,7 +496,7 @@ namespace Waldo_FCS
 
             missionTimerTicks++;
 
-            if (navIF_.posVel_.timeConverged)
+            if (!hardwareAttached  || navIF_.posVel_.timeConverged)
             {
                 labelWaitingSats.Visible = false;
 
@@ -523,7 +524,8 @@ namespace Waldo_FCS
                 try
                 {
                     signedError = Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
-                    iTGO = Convert.ToInt32(TGO);
+
+                    iTGO = -Convert.ToInt32(TGO);  //sign swap based on 5/14/2013 road test
                     iXTR = Convert.ToInt32(FLGeometry.headingRelativeToFL);
                 }
                 catch
@@ -536,8 +538,11 @@ namespace Waldo_FCS
             }
             else
             {
-                labelWaitingSats.Visible = true;
-                labelWaitingSats.Text = "waiting sats ... " + navIF_.posVel_.numSV + " locked";
+                if (hardwareAttached)
+                {
+                    labelWaitingSats.Visible = true;
+                    labelWaitingSats.Text = "waiting sats ... " + navIF_.posVel_.numSV + " locked";
+                }
             }
 
         }
@@ -869,7 +874,7 @@ namespace Waldo_FCS
                 labelWaitingSats.Visible = true;
                 labelWaitingSats.Text = "downloading nav file to PC ... ";
                 Application.DoEvents();
-                navIF_.Close();
+                if (hardwareAttached) navIF_.Close();
                 labelWaitingSats.Visible = true;
                 Application.DoEvents();
 

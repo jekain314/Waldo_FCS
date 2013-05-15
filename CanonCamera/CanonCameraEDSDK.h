@@ -90,6 +90,7 @@ namespace CanonCameraEDSDK {
 		String^ imgFileNameWithPath;
 		EdsCameraListRef eosCameras_;
 		EdsError eosErr_;
+
 		System::IO::TextWriter ^twLog;
 	};
 

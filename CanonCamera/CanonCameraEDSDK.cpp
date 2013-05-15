@@ -130,6 +130,8 @@ namespace CanonCameraEDSDK {
 	CanonCamera::~CanonCamera(void)
 	{
 		EdsUInt32 count;
+		twLog->Close();
+	
 		if (eosCameras_ != NULL)
 		{
 			eosErr_ = EdsGetChildCount(eosCameras_, &count);
