@@ -523,9 +523,10 @@ namespace Waldo_FCS
                 int signedError, iTGO, iXTR;
                 try
                 {
-                    signedError = Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
+                    //sign flip based on 5/14/2013 road test
+                    signedError = -Convert.ToInt32(FLGeometry.PerpendicularDistanceToFL * Math.Sign(FLGeometry.FightLineTravelDirection));
 
-                    iTGO = -Convert.ToInt32(TGO);  //sign swap based on 5/14/2013 road test
+                    iTGO = Convert.ToInt32(TGO);  
                     iXTR = Convert.ToInt32(FLGeometry.headingRelativeToFL);
                 }
                 catch
