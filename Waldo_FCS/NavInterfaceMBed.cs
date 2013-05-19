@@ -88,6 +88,7 @@ namespace Waldo_FCS
         public long trTime;
         public double bytesPerSec;
         public int maxBytesInBuff;
+        public int totalBytesWrittenByMbed;
 
         public NavInterfaceMBed()
         {
@@ -635,14 +636,23 @@ namespace Waldo_FCS
 				        // need to flag error
 			        }
 		        }
-	        }
+                else if (strEntries[1] == "totalBytesWritten")
+                {
+                    totalBytesWrittenByMbed = Convert.ToInt32(strEntries[2]);
+                }
+            }
         }
 
-        public void Close()
+        public void Close(Label userMessage,  ProgressBar transferProgress)
         {
             ////////////////////////////////////////////////////////
             //orderly shutdown the mbed serial interface
             ////////////////////////////////////////////////////////
+
+            transferProgress.Style = ProgressBarStyle.Continuous;
+            transferProgress.Visible = true;
+            userMessage.Visible = true;
+            userMessage.Text = "Transferring Nav file ...";
 
             //LogData(" entering the nav close procedure \n");
             SendCommandToMBed(NAVMBED_CMDS.GET_MBED_FILE);
@@ -650,7 +660,7 @@ namespace Waldo_FCS
             // and log confirmation
             WriteMessages();
             // Allow time for command to be sent
-            Thread.Sleep(125);
+            Thread.Sleep(500);
             ReadMessages();
             ParseMessages();
 
@@ -669,6 +679,15 @@ namespace Waldo_FCS
             ParseMessages();
             Thread.Sleep(100);
 
+            msgStr = "cksum Nav.bin";
+            writeBuffer_.Enqueue(msgStr);
+            WriteMessages();
+
+            Thread.Sleep(1000);
+            ReadMessages();
+            ParseMessages();
+            Thread.Sleep(100);
+
             msgStr = "bcat Data/Nav.bin";
             writeBuffer_.Enqueue(msgStr);
             WriteMessages();
@@ -682,7 +701,7 @@ namespace Waldo_FCS
             Stopwatch testForBytes = new Stopwatch();
             transferTime.Start();
             testForBytes.Start();   //timer to terminate the read loop if havent seen a byte in 1 sec
-            while (testForBytes.ElapsedMilliseconds < 1000)
+            while (testForBytes.ElapsedMilliseconds < 2000)
             {
                 int btr = serialPort_.BytesToRead;
                 if (btr == 0) continue;
@@ -692,13 +711,16 @@ namespace Waldo_FCS
                 nBytes += btr;
                 if (btr > maxBytesInBuff) maxBytesInBuff = btr;
                 testForBytes.Restart();  //reset timer if we have received a byte
-                //Thread.Sleep(20);
+
+                if (totalBytesWrittenByMbed > 0)
+                    transferProgress.Value = (int)(100.0 * (double)nBytes / (double)totalBytesWrittenByMbed);
+                Application.DoEvents();
             }
             trTime = transferTime.ElapsedMilliseconds;
             bytesPerSec = (nBytes / 1000.0) / (trTime / 1000.0);
 
-
-            //LogData(" total transfer time (msecs) = " + trTime.ToString() + "bytesPerSec = " + bytesPerSec.ToString("D2"));
+            LogData(" total KB transfered = " + (nBytes / 1000.0).ToString("F2"));
+            LogData(" total transfer time (secs) = " + (trTime/1000.0).ToString("F2") + "  BPS = " + bytesPerSec.ToString("F2"));
 
             msgStr = "exit";   //get out of the SDshell program
             writeBuffer_.Enqueue(msgStr);
@@ -708,8 +730,8 @@ namespace Waldo_FCS
             ParseMessages();
             Thread.Sleep(100);
 
-            BW.Close(); //LogData(" closed binary writer \n");
-            fs.Close(); //LogData(" closes nav.bin file \n");
+            BW.Close(); LogData(" closed binary writer \n");
+            fs.Close(); LogData(" closes nav.bin file \n");
 
             Thread.Sleep(1000);
             ReadMessages();

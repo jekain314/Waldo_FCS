@@ -93,6 +93,13 @@ namespace Waldo_FCS
         private void MissionSelection_Load(object sender, EventArgs e)
         {
 
+            // place form in top left of the screen
+            this.Top = 0;
+            this.Left = 0;
+
+            //no border on the displayed form
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+
             //set the size of the projecr selection form in pixels
             //note that this may be larger than the project map
             //this.Width = (int)(mapScaleFactor * (double)640);

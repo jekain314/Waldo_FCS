@@ -34,7 +34,13 @@ namespace Waldo_FCS
         StreamWriter FlyKmlFile;
         StreamWriter PhotoCenterCorrelationFile;
 
-        Bitmap bm;
+        //temporary bitmaps used to store intermediate map results -- to prevent map flicker
+        //bm1 changes once per mission, bm2 uses bm1 and changes once per flight line
+        //bm3 adds platform position and trigger locations
+        Bitmap bm1; //base1 bitmap has map, flightLines, frame for steering bar, any static labels
+        Bitmap bm2; //base2 bitmap adds current line to base1 bitmap
+        Bitmap bm3; //base3 bitmap adds prior platform locations, prior trigger locations
+
         Image img;
 
         Double lon2PixMultiplier;
@@ -47,6 +53,7 @@ namespace Waldo_FCS
 
         SteeringBarForm steeringBar;
         bool useManualSimulationSteering = false;
+        bool currentFlightLineChanged = true;
 
         int missionTimerTicks = 0;
 
@@ -84,7 +91,11 @@ namespace Waldo_FCS
         double deltaT;
         double speed;
         bool realTimeInitiated = false;
-        bool firstGPSPositionAvailable = false;
+        bool firstGPSPositionAvailable = false; 
+
+        //steering bar information
+        int signedError, iTGO, iXTR;
+
 
         UTM2Geodetic utm;
 
@@ -100,8 +111,8 @@ namespace Waldo_FCS
 
         Thread ImageReceivedAtSDcardThread; //handles image detected to be placed on the camera SD card
 
-        bool waitingForPOSVEL;              //set to false when we receive a PosVel message from mbed
-        bool waitingForTriggerResponse;
+        //bool waitingForPOSVEL;              //set to false when we receive a PosVel message from mbed
+        //bool waitingForTriggerResponse;
         long elapsedTimeToTrigger;
         bool triggerReQuested;
 
@@ -118,6 +129,14 @@ namespace Waldo_FCS
             NavInterfaceMBed navIF_In, CanonCamera cameraIn, bool simulatedMission_, bool hardwareAttached_)
         {
             InitializeComponent();
+
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+
+            //set the mission image
+            //this.Width = (int)(mapScaleFactor * 640);
+            //this.Height = (int)(mapScaleFactor * 480);
+            this.Width = 640;    //pixel height of the form
+            this.Height = 480;   //pixel width of the form
 
             //retrieve local variables from the arguments
             missionNumber = _missionNumber;
@@ -152,9 +171,10 @@ namespace Waldo_FCS
              crumbTrail = new Point[numberCrumbTrailPoints];
 
             ImageReceivedAtSDcardThread = new Thread(new ThreadStart(ImageAvaiableThreadWorker));
-            ImageReceivedAtSDcardThread.Priority = ThreadPriority.BelowNormal;
+            ImageReceivedAtSDcardThread.Priority = ThreadPriority.Normal;
+            ImageReceivedAtSDcardThread.IsBackground = true;  //this causes the thread to stop when all foreground threads are stopped
 
-            labelWaitingSats.Visible = false;
+            labelPilotMessage.Visible = false;
         }
 
         void getPosVel()
@@ -209,18 +229,10 @@ namespace Waldo_FCS
 
         private void Mission_Load(object sender, EventArgs e)
         {
+            this.Top = 0;
+            this.Left = 0;
 
             this.DoubleBuffered = true;
-
-            //set the mission image
-            //this.Width = (int)(mapScaleFactor * 640);
-            //this.Height = (int)(mapScaleFactor * 480);
-            this.Width = 640;    //pixel height of the form
-            this.Height = 480;   //pixel width of the form
-
-            //this.btnMinus.Visible = false;
-            //this.btnPlus.Visible = false;
-            //this.lblFlightLine.Visible = false;
 
             //load the Project Map from the flight maps folder -- prepared with the mission planner
             String MissionMapPNG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
@@ -233,9 +245,8 @@ namespace Waldo_FCS
             else
                 MessageBox.Show(" there is no mission map:  \n" + MissionMapJPG);
 
-            //must convert this image into a non-indexed image in order to draw on it -- saved file PixelFormat is "Format8bppindexed"
-            bm = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            Graphics g = Graphics.FromImage(bm);  //create a graphics object
+            bm1 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            Graphics g = Graphics.FromImage(bm1);  //create a graphics object from the base map image
 
             this.lblFlightAlt.Text = "MSL (ft):  " + ps.msnSum[missionNumber].flightAltMSLft.ToString("F0");
             this.lblFlightLines.Text = "Flightlines: " + ps.msnSum[missionNumber].numberOfFlightlines.ToString();
@@ -243,30 +254,10 @@ namespace Waldo_FCS
 
             utm = new UTM2Geodetic();
 
-            //steering bar shows the pilot error on the flight line
-            // For Waldo_FCS we will show the steering bar integral to the mission display (no separate display) 
-            steeringBar = new SteeringBarForm(Convert.ToInt32(FLerrorTolerance));
-            steeringBar.Show();
-
-            //above objects used within the Paint event for this MissionSelection Form to regenerate the flight lines 
-
-            this.BackgroundImage = img;
-            //this.BackgroundImageLayout = ImageLayout.Stretch;
+            //this.BackgroundImage = img;
             g.DrawImage(img, 0, 0);     //img is the mission background image defined above
-        }
 
-
-        private void Mission_Paint(object sender, PaintEventArgs e)
-        {
-
-            //   see below for flicker-free drawing with buffered image
-        ///  http://www.codeguru.com/csharp/csharp/cs_graphics/drawing/article.php/c6137/Flicker-Free-Drawing-In-C.htm
-            Bitmap offScreenBmp;
-            Graphics g;
-            offScreenBmp = new Bitmap(this.Width, this.Height);
-            g = Graphics.FromImage(offScreenBmp); 
-
-            //draw all the flightlines --- dont need to do this but once when the mission is changed!!!
+            //draw all the flightlines onto bm1 --- dont need to do this but once every time the mission is changed
             //draw the flight lines ONCE on the background image and generate a new background image
             foreach (endPoints ep in ps.msnSum[missionNumber].FlightLinesCurrentPlan)
             {
@@ -274,16 +265,113 @@ namespace Waldo_FCS
                 g.DrawLine(new Pen(Color.Green, 2), GeoToPix(ep.start), GeoToPix(ep.end));
             }
 
-            // show the already completed flight lines in red (draw over the original lines)
-            foreach (endPoints ep in FLUpdateList)
+            //steering bar shows the pilot error on the flight line
+            // For Waldo_FCS we will show the steering bar integral to the mission display (no separate display) 
+            //steeringBar = new SteeringBarForm(Convert.ToInt32(FLerrorTolerance));
+            //steeringBar.Show();
+
+            //draw steering bar on map display
+            //line across to form bottom of the bar
+            Pen myPen1 = new Pen(Color.Gray, 1);
+            Pen myPen2 = new Pen(Color.Black, 1);
+            Pen myPen3 = new Pen(Color.Green, 1);
+
+
+            myPen1.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+            myPen2.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+            myPen3.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+
+            g.DrawLine(myPen1, new Point(0, this.Height/15), new Point(this.Width, this.Height/15));
+            g.DrawLine(myPen2, new Point(this.Width / 2, 0), new Point(this.Width / 2, this.Height / 15));
+            g.DrawLine(myPen3, new Point(this.Width / 2 - this.Width / 8, 0), new Point(this.Width / 2 - this.Width / 8, this.Height / 15));
+            g.DrawLine(myPen3, new Point(this.Width / 2 + this.Width / 8, 0), new Point(this.Width / 2 + this.Width / 8, this.Height / 15));
+
+
+            g.Dispose();
+
+            bm2 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            bm3 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            //initially set the bm2 and bm3 images to bm1
+            Graphics g2 = Graphics.FromImage(bm2);
+            g2.DrawImage(bm1,0,0);
+            Graphics g3 = Graphics.FromImage(bm3);
+            g3.DrawImage(bm1, 0, 0);
+
+            Refresh();
+        }
+
+        private void drawStickPlane(ref Graphics g, int err, int rotation)
+        {
+            //form the location of the error icon center point
+            int MAXERR = 300;  //err is actial CR error in meters MAXERR is the MAX displayed CR error
+
+            Point errLoc = new Point(err * this.Width / MAXERR / 2 + this.Width / 2, this.Height / (2*15));
+
+            //rotation = 0;
+
+            //draw a stick airplane at lateral location err and with orientation rotation          
+            //form with three lines as wing, body, tail of a Cessna aircraft
+            //height of the steerinbar is this.height/15
+            //wing is height, body is 0.9*heyght, tail is 0.3*height
+            Pen penB = new Pen(Color.Black, 4);
+            Pen penW = new Pen(Color.Black, 6);
+            Pen penT = new Pen(Color.Black, 3);
+
+            double cosA = Math.Cos(rotation*Deg2Rad);
+            double sinA = Math.Sin(rotation*Deg2Rad);  //angle in radians
+            double wing = this.Height/15;
+            double body = this.Height * 0.90 / 15;
+            double tail = this.Height * 0.33 / 15;
+
+            Point bP = new Point((int)(0.50 * body * sinA), (int)(0.50 * body * cosA));
+            Point bM = new Point((int)(-0.50 * body * sinA), (int)(-0.50 * body * cosA));
+
+            Point wP = new Point((int)(0.50 * wing * cosA) - bP.X / 3 + errLoc.X, (int)(-0.50 * wing * sinA) - bP.Y / 3 + errLoc.Y);
+            Point wM = new Point((int)(-0.50 * wing * cosA) - bP.X / 3 + errLoc.X, (int)(0.50 * wing * sinA) - bP.Y / 3 + errLoc.Y);
+
+            Point tP = new Point((int)(0.50 * tail * cosA) + 3*bP.X / 4 + errLoc.X, (int)(-0.50 * tail * sinA) + 3*bP.Y / 4 + errLoc.Y);
+            Point tM = new Point((int)(-0.50 * tail * cosA) + 3*bP.X / 4 + errLoc.X, (int)(0.50 * tail * sinA) + 3*bP.Y / 4 + errLoc.Y);
+
+            bP.X += errLoc.X;
+            bP.Y += errLoc.Y;
+            bM.X += errLoc.X;
+            bM.Y += errLoc.Y;
+
+            //draw the three lines that represent the stick airplane
+            g.DrawLine(penW, wP, wM);
+            g.DrawLine(penB, bP, bM);
+            g.DrawLine(penT, tP, tM);
+
+        }
+        
+
+        private void Mission_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.DrawImage(bm3, 0, 0, bm1.Width, bm3.Height);
+        }
+
+        private void prepBitmapForPaint()
+        {
+
+            if (currentFlightLineChanged)
             {
-                //draw the flight lines
-                g.DrawLine(new Pen(Color.Red, 2), GeoToPix(ep.start), GeoToPix(ep.end));
+                Graphics g = Graphics.FromImage(bm2);
+                g.DrawImage(bm1, 0, 0);
+                //draw the semi-infinite blue "current line" being flown -- make it run three line-lengths before and after the line
+                //do these computations only when the current line changes
+                float penWidth = 2;
+                g.DrawLine(new Pen(Color.Blue, penWidth), semiInfiniteFlightLineStartPix, semiInfiniteFlightLineEndPix);
+                g.Dispose();
+                currentFlightLineChanged = false;
             }
 
             //this is the part that will change frequently
             if (realTimeInitiated)  //this occurs after the OK button is clicked
             {
+                Graphics g = Graphics.FromImage(bm3);
+                g.DrawImage(bm2, 0, 0);
+
                 //draw the real-time location of the platform
                 Point pt = GeoToPix(platFormPosVel.GeodeticPos);
                 // circle centered over the geodetic aircraft location  
@@ -309,20 +397,17 @@ namespace Waldo_FCS
                 for (int i=0; i<numPicsThisFL; i++)
                     g.DrawEllipse(new Pen(Color.Red, 2), triggerPoints[i].X-5, triggerPoints[i].Y-5, 10, 10);
 
-                //draw the semi-infinite blue "current line" being flown -- make it run three line-lengths before and after the line
-                //do these computations only when the current line changes
-                float penWidth = 2; 
-                g.DrawLine(new Pen(Color.Blue, penWidth), semiInfiniteFlightLineStartPix, semiInfiniteFlightLineEndPix);
 
                 if (currentFlightlineIsOpen)  //redraw the flight line -- with a bolder line width to designate the "capture event"
                 {
-                    penWidth = 4;
+                    int penWidth = 4;
                     g.DrawLine(new Pen(Color.Blue, penWidth), FlightLineStartPix, FlightLineEndPix);
                 }
-            }
 
-            System.Drawing.Graphics gg = this.CreateGraphics();
-            gg.DrawImage(offScreenBmp, 0, 0);
+                drawStickPlane(ref g, signedError, iXTR);
+
+                g.Dispose();
+            }
         }
 
         private Point GeoToPix(PointD LonLat)
@@ -398,7 +483,7 @@ namespace Waldo_FCS
                 platFormPosVel.GeodeticPos.Y = startLat;
 
                 //////////////////////////////////////////////////////////
-                speed = 16.0;// 51.4;   // 100 knots
+                speed =  51.4;   // 100 knots
                 //////////////////////////////////////////////////////////
 
                 platFormPosVel.velD = 0.0;
@@ -483,7 +568,7 @@ namespace Waldo_FCS
         }
 
         ////////////////////////////////////////////////
-        //ths controls all the real-time action
+        //this controls all the real-time action
         ////////////////////////////////////////////////
         private void realTimeAction()
         {
@@ -498,10 +583,13 @@ namespace Waldo_FCS
 
             if (!hardwareAttached  || navIF_.posVel_.timeConverged)
             {
-                labelWaitingSats.Visible = false;
+                labelPilotMessage.Visible = false;
 
                 //compute platform/FL geometry and triggerRequested event 
                 prepMissionDisplay();
+                prepBitmapForPaint();
+                //repaint the screen ...
+                this.Refresh();  //call the Paint event
 
                 Application.DoEvents();
 
@@ -516,11 +604,9 @@ namespace Waldo_FCS
                 Application.DoEvents();
                 Thread.Sleep(100);
 
-                //repaint the screen ...
-                this.Refresh();  //call the Paint event
+
 
                 //prepare the info for the steering bar
-                int signedError, iTGO, iXTR;
                 try
                 {
                     //sign flip based on 5/14/2013 road test
@@ -535,14 +621,14 @@ namespace Waldo_FCS
                     iTGO = 0;
                     iXTR = 0;
                 }
-                steeringBar.DisplaySteeringBar(signedError, iTGO, iXTR);
+                //steeringBar.DisplaySteeringBar(signedError, iTGO, iXTR);
             }
             else
             {
                 if (hardwareAttached)
                 {
-                    labelWaitingSats.Visible = true;
-                    labelWaitingSats.Text = "waiting sats ... " + navIF_.posVel_.numSV + " locked";
+                    labelPilotMessage.Visible = true;
+                    labelPilotMessage.Text = "waiting sats ... " + navIF_.posVel_.numSV + " locked";
                 }
             }
 
@@ -694,6 +780,7 @@ namespace Waldo_FCS
 
                         //increment to the next flight line
                         currentFlightLine++;
+                        currentFlightLineChanged = true;  //repaints the current flight line on the display
                         //display the next flight line
                         this.lblFlightLine.Text = currentFlightLine.ToString("D2");
 
@@ -872,11 +959,8 @@ namespace Waldo_FCS
 
                 realTimeInitiated = false;
 
-                labelWaitingSats.Visible = true;
-                labelWaitingSats.Text = "downloading nav file to PC ... ";
-                Application.DoEvents();
-                if (hardwareAttached) navIF_.Close();
-                labelWaitingSats.Visible = true;
+                if (hardwareAttached) navIF_.Close(labelPilotMessage, progressBar1);
+                labelPilotMessage.Visible = false;
                 Application.DoEvents();
 
                 kmlWriter.Close();

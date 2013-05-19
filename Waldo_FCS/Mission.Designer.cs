@@ -37,7 +37,8 @@
             this.lblFlightLine = new System.Windows.Forms.Label();
             this.btnRightArrow = new System.Windows.Forms.Button();
             this.btnLeftArrow = new System.Windows.Forms.Button();
-            this.labelWaitingSats = new System.Windows.Forms.Label();
+            this.labelPilotMessage = new System.Windows.Forms.Label();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -140,16 +141,25 @@
             this.btnLeftArrow.UseVisualStyleBackColor = true;
             this.btnLeftArrow.Click += new System.EventHandler(this.btnLeftArrow_Click);
             // 
-            // labelWaitingSats
+            // labelPilotMessage
             // 
-            this.labelWaitingSats.AutoSize = true;
-            this.labelWaitingSats.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelWaitingSats.ForeColor = System.Drawing.Color.Red;
-            this.labelWaitingSats.Location = new System.Drawing.Point(23, 98);
-            this.labelWaitingSats.Name = "labelWaitingSats";
-            this.labelWaitingSats.Size = new System.Drawing.Size(245, 37);
-            this.labelWaitingSats.TabIndex = 7;
-            this.labelWaitingSats.Text = "Waiting sats ...";
+            this.labelPilotMessage.AutoSize = true;
+            this.labelPilotMessage.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelPilotMessage.ForeColor = System.Drawing.Color.Red;
+            this.labelPilotMessage.Location = new System.Drawing.Point(23, 98);
+            this.labelPilotMessage.Name = "labelPilotMessage";
+            this.labelPilotMessage.Size = new System.Drawing.Size(245, 37);
+            this.labelPilotMessage.TabIndex = 7;
+            this.labelPilotMessage.Text = "Waiting sats ...";
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Enabled = false;
+            this.progressBar1.Location = new System.Drawing.Point(399, 98);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(198, 36);
+            this.progressBar1.TabIndex = 8;
+            this.progressBar1.Visible = false;
             // 
             // Mission
             // 
@@ -157,7 +167,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(624, 442);
             this.ControlBox = false;
-            this.Controls.Add(this.labelWaitingSats);
+            this.Controls.Add(this.progressBar1);
+            this.Controls.Add(this.labelPilotMessage);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.lblFlightAlt);
             this.Controls.Add(this.lblFlightLines);
@@ -189,6 +200,7 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button btnRightArrow;
         private System.Windows.Forms.Label lblFlightLine;
-        private System.Windows.Forms.Label labelWaitingSats;
+        private System.Windows.Forms.Label labelPilotMessage;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }

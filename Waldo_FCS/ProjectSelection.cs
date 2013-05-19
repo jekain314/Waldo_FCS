@@ -83,7 +83,12 @@ namespace Waldo_FCS
             //at this point, we have found the camera and the mbed device
             //the mbed has launched the GPS receiver and it will begin finding satellites
             //we will wait til we get to the mission screen before 
-            
+
+
+            this.Top = 0;
+            this.Left = 0;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+
             //Set the Window Size
             //TODO:  make the windows fill the screen
             //this.Width = 3 * 640 / 2;
@@ -152,6 +157,7 @@ namespace Waldo_FCS
             MessageBox.Show(" this will terminate GeoScanner","Exiting ...",MessageBoxButtons.OKCancel);
             //this will bomb if there were no [project folders
             //debugFile.WriteLine(" normal terminating from Project selection screen "); 
+   
             Application.Exit();
         }
 

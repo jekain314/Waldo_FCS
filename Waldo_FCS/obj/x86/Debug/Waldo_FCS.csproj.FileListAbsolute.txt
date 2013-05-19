@@ -9,7 +9,7 @@ C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csproj.GenerateRe
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe.config
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.exe
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.pdb
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.dll
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.pdb
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.pdb
