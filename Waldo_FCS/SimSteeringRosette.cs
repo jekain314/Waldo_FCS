@@ -32,6 +32,8 @@ namespace Waldo_FCS
 
         private void SimSteeringRosette_Load(object sender, EventArgs e)
         {
+            this.Top = 0;
+            this.Left = 0;
             this.Width = 100;
             this.Height = 100;
         }

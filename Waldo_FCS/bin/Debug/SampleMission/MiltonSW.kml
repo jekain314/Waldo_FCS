@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+xmlns:gx="http://www.google.com/kml/ext/2.2"
+xmlns:kml="http://www.opengis.net/kml/2.2"
+xmlns:atom="http://www.w3.org/2005/Atom">\r\n
+<Document> <name>MiltonSW</name>
+<Style id="sn_ylw-pushpin">
+<IconStyle>  <scale>1.1</scale>	<Icon>
+<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+</Icon>	 <hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/> </IconStyle>
+</Style> <StyleMap id="msn_ylw-pushpin"></StyleMap>
+<Style id="evenMsnNumberEvenSet"><LineStyle><color>64F02814</color><width>2</width></LineStyle></Style>
+<Style id="oddMsnNumberEvenSet"><LineStyle><color>64F0FF14</color><width>2</width></LineStyle></Style>
+<Style id="evenMsnNumberOddSet"><LineStyle><color>6400FF14</color><width>2</width></LineStyle></Style>
+<Style id="oddMsnNumberOddSet"><LineStyle><color>6414F0FA</color><width>2</width></LineStyle></Style>
+<Style id="greyLine"><LineStyle><color>64464646</color><width>1</width></LineStyle></Style>
+<Style id="whiteLine"><LineStyle><color>64FFFFFF</color><width>1</width></LineStyle></Style>
+<Style id="blueLine"><LineStyle><color>64F01E14</color><width>3</width></LineStyle></Style>
+<Style id="redLine"><LineStyle><color>641400FF</color><width>2</width></LineStyle><PolyStyle><color>01400FA</color></PolyStyle></Style>
+<Pair> <key>normal</key> <styleUrl>#sn_ylw-pushpin</styleUrl> </Pair>
+<Pair><key>highlight</key><styleUrl>#sh_ylw-pushpin</styleUrl></Pair>
+<Style id="sh_ylw-pushpin"><IconStyle> <scale>1.3</scale>
+<Icon><href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href></Icon>
+<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+</IconStyle></Style>
+<Style id="airports"><IconStyle> <Icon><href>http://maps.google.com/mapfiles/kml/shapes/airports.png</href></Icon></IconStyle></Style>
+<Style id="epts"><IconStyle> <Icon><href>http://maps.google.com/mapfiles/kml/shapes/target.png</href></Icon></IconStyle></Style>
+	<StyleMap id="msn_placemark_circle">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_placemark_circle</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_placemark_circle_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+
+<Placemark id="AOIBOUNDRY">  <name>MiltonSW</name>  <styleUrl>#redLine</styleUrl> <LineString> <tessellate>1</tessellate>
+<coordinates>
+-87.0794251588357,30.6644734638085,0
+-87.0823885149267,30.6557709277415,0
+-87.0830817152825,30.6440671383037,0
+-87.0832560154007,30.6436169355017,0
+-87.0787561683092,30.6249931770521,0
+-87.0742526783764,30.61489738188,0
+-87.0785861593639,30.6062037163926,0
+-87.0667237670823,30.6022819166571,0
+-87.0473384713505,30.6043715496549,0
+-87.0466394804587,30.6043713901158,0
+-87.0286354996688,30.6096269040896,0
+-87.0200704058138,30.6103794303767,0
+-87.0200709790278,30.6121860502989,0
+-87.0200719337319,30.6151967442005,0
+-87.0204219587564,30.6164010223117,0
+-87.0207720162776,30.6177557267857,0
+-87.020772062638,30.6179062272495,0
+-87.0207726886693,30.6185087175549,0
+-87.0207733188423,30.6192616107454,0
+-87.0200776525634,30.6198666939338,0
+-87.0186813019113,30.6203192364508,0
+-87.0176354280117,30.6207724739391,0
+-87.0176302354261,30.6228738241076,0
+-87.0171036916732,30.6258804486495,0
+-87.0167539433951,30.6267827795482,0
+-87.0165785012354,30.6281361216663,0
+-87.016578313187,30.628436855265,0
+-87.016227472859,30.6300907774427,0
+-87.0162222521633,30.6308406856596,0
+-87.0162208936642,30.6312914808926,0
+-87.0142944834685,30.650847756025,0
+-87.0156945683349,30.6579164176368,0
+-87.022341079745,30.6633289675766,0
+-87.0487252974986,30.6698776348967,0
+-87.0707016527656,30.6692736688046,0
+-87.0794251588357,30.6644734638085,0
+-87.0794251588357,30.6644734638085,0
+</coordinates> </LineString>  </Placemark>
+
+<GroundOverlay id="OVIMG_MiltonSW"> <name>Project Map</name>  <visibility>0</visibility> <drawOrder> 10 </drawOrder> <LatLonAltBox>
+<north>31.2015834980243</north> <south>30.0672510287657</south>
+<east>-86.1698689994346 </east>  <west>-87.9276814994346 </west>
+</LatLonAltBox> <Lod> <minLodPixels>128</minLodPixels>
+<maxLodPixels>-1</maxLodPixels> </Lod> <Icon>
+
+<href>./MiltonSW_Background/ProjectMap.jpg</href>
+
+</Icon>
+ </GroundOverlay>
+
+<Folder id="MMSNPLN"> <name> MiltonSWMissionPlan </name>
+<downRangePhotoSpacingMeters> 481.511281102055 </downRangePhotoSpacingMeters>
+<numberOfMissons> 1 </numberOfMissons>
+<UTMZone>16R</UTMZone>
+<gridOriginUTMNorthing> 3393018.03081537 </gridOriginUTMNorthing>
+<gridOriginUTMEasting> 492022.469965124 </gridOriginUTMEasting>
+<description> <![CDATA[
+Area of Polygon: 41.1 sqKm (15.9 sqMi) <br>
+Flight Altitude: 5500 ft (AGL)  <br>
+Ground Sample Distance: 21.8cm (8.6in)  <br>
+Crossrange Swath: 0.56km (0.35mi)  <br>
+Total # Missions: 1  <br>
+______________________________________________<br>
+Total Distance over target 81.3km  (50.5mi) <br>
+Total Flight Distance with Ferry  151.3km (94.0mi)  <br>
+Average 2-way Ferry Distance  70.0km  (43.5mi) <br>
+Total Flight Time with Ferry (hr): 0.8  <br>
+Total Number of Flightlines: 12  <br>
+Average Flightline Length: 6.8km  (4.2mi)   <br>
+Total Images: 175  <br>
+______________________________________________<br> <br>
+<b> <center>Flight Parameters</center></b> <br>
+<table border="1" padding="2">
+<tr><td><center><b>flightAlt <b></center></td> <td><center>5500</center></td></tr><tr><td><center><b>CRFOV <b></center></td> <td><center>27</center></td></tr><tr><td><center><b>DRFOV <b></center></td> <td><center>39.5</center></td></tr><tr><td><center><b>downlap <b></center></td> <td><center>60</center></td></tr><tr><td><center><b>cameraPixels <b></center></td> <td><center>3700</center></td></tr><tr><td><center><b>sideLap <b></center></td> <td><center>30</center></td></tr><tr><td><center><b>timeToTurn <b></center></td> <td><center>0.0333333333333333</center></td></tr><tr><td><center><b>aircraftSpeedKnots <b></center></td> <td><center>100</center></td></tr><tr><td><center><b>aircraftSpeedKPH <b></center></td> <td><center>185.04</center></td></tr><tr><td><center><b>aircraftEndurance <b></center></td> <td><center>3</center></td></tr><tr><td><center><b>maxAOITimeGlobal <b></center></td> <td><center>1.5</center></td></tr><tr><td><center><b>avgClimbRate <b></center></td> <td><center>0</center></td></tr><tr><td><center><b>takeoffTime <b></center></td> <td><center>0.0833333333333333</center></td></tr><tr><td><center><b>landingTime <b></center></td> <td><center>0.0833333333333333</center></td></tr>
+</table>
+______________________________________________<br> <br>
+<b> <center>Flight Line Summary </center></b> <br>
+<table border="1" padding="2">
+<tr> <td><center> Mission </center> </td> <td><center> Total Time (hr) </center> </td> <td><center> Time at Site (hr) </center> </td> <td><center> images </center> </td><td><center> alt (ft MSL) </center> </td></tr>
+<tr><td><center> 0            </center></td> <td><center>        1.2  </center></td><td><center>        0.8 </center></td> <td><center> 175 </center>            </td><td><center>       5650</center></td>          </tr>
+</table>
+]]> </description>
+<Folder id="APTS"> <name> Airports Used for This Plan</name><visibility>0</visibility>
+<Placemark> <name>Peter Prince Field</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.9936666667,30.6376666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>WHITING FLD NAS SOUTH</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.0161,30.6969,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>SPENCER NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.14,30.6253,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>WHITING FLD NAS NORTH</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.0219,30.7242,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>SANTA ROSA NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.94,30.6108,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>PACE NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.1956,30.6994,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>HAROLD NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.8869,30.6806,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>CHOCTAW NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.9597,30.5069,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Pensacola Regional</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.1875,30.4733333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>HOLLEY NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.8939,30.4253,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>AUX FIELD 6 LANDING ZONE</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.7428,30.6336,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Fort Walton Beach</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.8291666667,30.4063333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>SAUFLEY FLD NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.3381,30.4697,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Coastal</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.3853333333,30.5318333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Ferguson</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.3486666667,30.3988333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>PENSACOLA NAS</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.3186,30.3525,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>HURLBURT FLD</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.6892,30.4278,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Brewton Municipal</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.0656666667,31.0506666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>EGLIN AF AUX NR 3 DUKE</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.5228,30.6503,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Bob Sikes</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.5221666667,30.7788333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>EGLIN AFB</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.5253,30.4831,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Atmore Municipal</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.4468333333,31.0161666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>WOLF NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.5417,30.3461,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>SUMMERDALE NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.6453,30.5075,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Destin-Fort Walton Beach</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.4715,30.4,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>DESTIN FT WALTON BEACH</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.4714,30.4,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Destin-Fort Walton Beach</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.4715,30.4,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>DESTIN FT WALTON BEACH</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.4714,30.4,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>BARIN NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.635,30.3889,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Foley Municipal</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.7008333333,30.4276666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Jack Edwards</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.6736666667,30.2895,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>SILVERHILL NOLF</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.8097,30.5636,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Bay Minette Municipal</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.8173333333,30.8705,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>H L Sonny Callahan</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.878,30.4621666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Florala Municipal</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.3115,31.0425,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Defuniak Springs</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.1516666667,30.7313333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Middleton Field</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.044,31.4158333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Mark Reynolds/North Mobile County</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.9805,30.9131666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Monroe County</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-87.351,31.458,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Mobile Downtown</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.068,30.6265,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Andalusia-Opp</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.3938333333,31.3088333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Mobile Downtown</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.068,30.6265,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Andalusia-Opp</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-86.3938333333,31.3088333333,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Dauphin Island</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.1275,30.2605,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>DAUPHIN ISLAND</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.1272,30.2603,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Dauphin Island</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.1275,30.2605,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>DAUPHIN ISLAND</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.1272,30.2603,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Roy E. Ray</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.2105,30.4546666667,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>Mobile Regional</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.2428333333,30.6915,0 </coordinates> </Point> </Placemark>
+<Placemark> <name>St. Elmo</name> <styleUrl>#airports</styleUrl>
+<Point> <coordinates>-88.2751666667,30.5018333333,0 </coordinates> </Point> </Placemark>
+</Folder>
+<Folder> <name> Summary Images</name>
+<GroundOverlay> <name> Summary_000 </name>  <visibility>0</visibility> <drawOrder> 10 </drawOrder> <LatLonAltBox>
+<north>30.7768046113456</north> <south>30.4932158444338</south>
+<east>-86.8290547466719</east> <west>-87.2685078716719</west>
+</LatLonAltBox> <Lod> <minLodPixels>128</minLodPixels>
+<maxLodPixels>-1</maxLodPixels> </Lod> <Icon>
+
+<href>./MiltonSW_Background/Background_00.jpg</href>
+
+</Icon>
+ </GroundOverlay>
+</Folder>
+<Folder id="MSNFLD"> <name>Mission Number 0</name> <missionNumber>0</missionNumber><numFLs>12</numFLs> <flightAltMSL> 5700 </flightAltMSL>
+<description> <![CDATA[
+Airport: Peter Prince Field (2R4) <br>
+Ferry Time: 0.38  <br>
+number of Flightlines: 12  <br>
+Total Flightline Length (mi): 54.02  <br>
+Total Time-Over-Target (hr): .84  <br>
+Total Flight Time (hr): 1.21  <br>
+Total Images: 175  <br>
+]]> </description>
+<Placemark id="MSNPOLY"> <name> MissionPolygon_00 </name> <styleUrl>#blueLine</styleUrl> <LineString> <tessellate>1</tessellate>
+<coordinates>
+-87.08108806,30.60903112,0
+-87.07520304,30.60034456,0
+-87.06932527,30.60034783,0
+-87.06344749,30.60035083,0
+-87.05756971,30.60035356,0
+-87.05169193,30.60035603,0
+-87.04581415,30.60035823,0
+-87.03993815,30.60470522,0
+-87.03406010,30.60470689,0
+-87.02818206,30.60470829,0
+-87.02230501,30.60905448,0
+-87.01642743,30.61340040,0
+-87.01643625,30.66554072,0
+-87.02231797,30.66553985,0
+-87.02820096,30.66988371,0
+-87.03408294,30.66988230,0
+-87.03996493,30.66988062,0
+-87.04584692,30.66987868,0
+-87.05172890,30.66987647,0
+-87.05761089,30.66987400,0
+-87.06349287,30.66987126,0
+-87.06937485,30.66986825,0
+-87.07525683,30.66986498,0
+-87.08113518,30.66551644,0
+-87.08108806,30.60903112,0
+</coordinates> </LineString>  </Placemark>
+
+<Placemark> <name> FlightlineNumber_000 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>6259.647</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 0 <br> 
+       FlightLine Length 3.89 mi <br> 
+       NumberImages 13 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.08108806,30.60903112,0   -87.08113518,30.66551644,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_001 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7704.180</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 1 <br> 
+       FlightLine Length 4.79 mi <br> 
+       NumberImages 15 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.07520304,30.60034456,0   -87.07525683,30.66986498,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_002 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7704.180</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 2 <br> 
+       FlightLine Length 4.79 mi <br> 
+       NumberImages 16 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.06932527,30.60034783,0   -87.06937485,30.66986825,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_003 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7704.180</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 3 <br> 
+       FlightLine Length 4.79 mi <br> 
+       NumberImages 16 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.06344749,30.60035083,0   -87.06349287,30.66987126,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_004 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7704.180</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 4 <br> 
+       FlightLine Length 4.79 mi <br> 
+       NumberImages 16 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.05756971,30.60035356,0   -87.05761089,30.66987400,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_005 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7704.180</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 5 <br> 
+       FlightLine Length 4.79 mi <br> 
+       NumberImages 16 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.05169193,30.60035603,0   -87.05172890,30.66987647,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_006 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7704.180</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 6 <br> 
+       FlightLine Length 4.79 mi <br> 
+       NumberImages 16 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.04581415,30.60035823,0   -87.04584692,30.66987868,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_007 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7222.669</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 7 <br> 
+       FlightLine Length 4.49 mi <br> 
+       NumberImages 15 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.03993815,30.60470522,0   -87.03996493,30.66988062,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_008 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7222.669</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 8 <br> 
+       FlightLine Length 4.49 mi <br> 
+       NumberImages 14 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.03406010,30.60470689,0   -87.03408294,30.66988230,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_009 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>7222.669</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 9 <br> 
+       FlightLine Length 4.49 mi <br> 
+       NumberImages 14 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.02818206,30.60470829,0   -87.02820096,30.66988371,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_010 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>6259.647</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 10 <br> 
+       FlightLine Length 3.89 mi <br> 
+       NumberImages 13 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.02230501,30.60905448,0   -87.02231797,30.66553985,0
+</coordinates></LineString> </Placemark>
+<Placemark> <name> FlightlineNumber_011 </name> <styleUrl>#whiteLine</styleUrl> <lengthMeters>5778.135</lengthMeters>
+<description> <![CDATA[
+       FlightLine Number 11 <br> 
+       FlightLine Length 3.59 mi <br> 
+       NumberImages 11 <br> 
+]]> </description>
+<LineString> <coordinates>
+-87.01642743,30.61340040,0   -87.01643625,30.66554072,0
+</coordinates></LineString> </Placemark>
+</Folder>
+</Folder>
+</Document>  </kml>

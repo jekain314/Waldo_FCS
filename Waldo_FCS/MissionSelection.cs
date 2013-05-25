@@ -29,7 +29,7 @@ namespace Waldo_FCS
         //tis is set by the web-based planning program
         int mapWidth  = 640;
         int mapHeight = 480;
-        //double mapScaleFactor = 1.5;  ///scale the mission planning map by this value
+        double mapScaleFactor = 1.6;  ///scale the mission planning map by this value
 
         Mission MissionForm;  //the mission form where flight lines are shown
 
@@ -44,7 +44,7 @@ namespace Waldo_FCS
         bool simulatedMission;
 
         //constructor for MissionSelection Form
-        public MissionSelection(ProjectSummary _ps, String _FlightPlanFolder, StreamWriter _debugFile,
+        public MissionSelection(ProjectSummary _ps, String _FlightPlanFolder,
             NavInterfaceMBed navIF_In, CanonCamera cameraIn, bool hardwareAttached_)
         {
             InitializeComponent();
@@ -52,7 +52,6 @@ namespace Waldo_FCS
             //set the flight plans folder and the Project Summary structure from the prior Project Selection
             FlightPlanFolder = _FlightPlanFolder;
             ps = _ps;
-            debugFile = _debugFile;
             navIF_ = navIF_In;
             camera = cameraIn;
             hardwareAttached = hardwareAttached_;
@@ -69,10 +68,10 @@ namespace Waldo_FCS
 
             //multiplier used for pix-to-geodetic conversion for the project map -- scales lat/lon to pixels
             // TODO:  ugly --- cant we do this exactly???
-            //lon2PixMultiplier = mapScaleFactor * mapWidth / (ib.eastDeg - ib.westDeg);
-            //lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
-            lon2PixMultiplier =  mapWidth  / (ib.eastDeg - ib.westDeg);
-            lat2PixMultiplier = -mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            lon2PixMultiplier = mapScaleFactor * mapWidth / (ib.eastDeg - ib.westDeg);
+            lat2PixMultiplier = -mapScaleFactor * mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
+            //lon2PixMultiplier =  mapWidth  / (ib.eastDeg - ib.westDeg);
+            //lat2PixMultiplier = -mapHeight / (ib.northDeg - ib.southDeg);  //"-" cause vertical map direction is positive towards the south
 
             //create the project polygon in pixel units -- once
             for (int i = 0; i < ps.ProjectPolygon.Count; i++)
@@ -96,16 +95,26 @@ namespace Waldo_FCS
             // place form in top left of the screen
             this.Top = 0;
             this.Left = 0;
+            this.DoubleBuffered = true;
 
             //no border on the displayed form
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
 
+            //fixes font scaling issues on other computers
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+
             //set the size of the projecr selection form in pixels
             //note that this may be larger than the project map
-            //this.Width = (int)(mapScaleFactor * (double)640);
-            //this.Height = (int)(mapScaleFactor * (double)480);
-            this.Width  = 640;
-            this.Height = 480;
+            this.Width = (int)(mapScaleFactor * (double)640);
+            this.Height = (int)(mapScaleFactor * (double)480);
+            //this.Width  = 640;
+            //this.Height = 480;
+
+            btnBack.BackColor = Color.Black;
+            btnBack.ForeColor = Color.White;
+            btnBack.Height = this.Height / 10;
+            btnBack.Width = this.Width / 10;
+            btnBack.Top = this.Height - (btnBack.Height + this.Height / 30); 
 
             //load the Project Map from the flight maps folder
             //  NOTE the map is a png  !!!!
@@ -128,14 +137,14 @@ namespace Waldo_FCS
 
 
             //must convert this image into a non-indexed image in order to draw on it -- saved file PixelFormat is "Format8bppindexed"
-            bm = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            bm = new Bitmap(this.Width, this.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
             Graphics g = Graphics.FromImage(bm);  //create a graphics object
             //above objects used in the Paint event for this MissionSelection Form
 
             ////////////////////////////////////////////////////////////////////////////////
             ////  analyze the pre-flown missions to assess flightline status
-            pfm = new PriorFlownMissions(FlightPlanFolder, ps, debugFile);
+            pfm = new PriorFlownMissions(FlightPlanFolder, ps);
             //get the summary structure for the pre-flown missions
             FLUpdate = pfm.getProjectUpdateFlightLines();  //contains summary ALL missions
             ////////////////////////////////////////////////////////////////////////////////
@@ -167,9 +176,23 @@ namespace Waldo_FCS
                 //get the mission-specific replica of the updated to-be-flown flight line lst
                 List<endPoints> thisMissionFLUpdate = pfm.UpdateFlightLinesPerPriorFlownMissions(missionNumber);
 
+                String MissionDateStringName = missionNumber.ToString("D2") + "_" +
+                DateTime.UtcNow.Year.ToString("D4") +
+                DateTime.UtcNow.Month.ToString("D2") +
+                DateTime.UtcNow.Day.ToString("D2") + "_" +
+                (3600 * DateTime.UtcNow.Hour + 60 * DateTime.UtcNow.Minute + DateTime.UtcNow.Second).ToString("D5");
+
+                String MissionDataFolder = FlightPlanFolder + ps.ProjectName + @"\Mission_" + missionNumber.ToString("D3") + @"\Data\";
+                if (!Directory.Exists(MissionDataFolder)) Directory.CreateDirectory(MissionDataFolder);
+
+                String debugFilename = MissionDataFolder + MissionDateStringName + @"_debugFile.txt";
+                debugFile = new StreamWriter(debugFilename);
+                debugFile.AutoFlush = true;
+                debugFile.WriteLine("Opened Debug session for Project: " + ps.ProjectName);
+
                 //this is the next displayed form
                 //note the mbed and camera hardware nterfaces have been passed in
-                MissionForm = new Mission(FlightPlanFolder, missionNumber, ps, thisMissionFLUpdate, 
+                MissionForm = new Mission(FlightPlanFolder, MissionDataFolder, MissionDateStringName, missionNumber, ps, thisMissionFLUpdate, 
                     debugFile, navIF_, camera, simulatedMission, hardwareAttached);
 
                 MissionForm.Visible = true;   //can get back to MissionSelection from Mission with a "Back" 
@@ -190,8 +213,8 @@ namespace Waldo_FCS
         {
             System.Drawing.Graphics g = this.CreateGraphics();
             //draw the map with project polygon and planned flight lines
-            //g.DrawImage(img, new Rectangle(0, 0, 3 * 640 / 2, 3 * 480 / 2)); //now draw the original indexed image (from the file) to the non-indexed image
-            g.DrawImage(img, new Rectangle(0, 0, 640, 480)); //now draw the original indexed image (from the file) to the non-indexed image
+            g.DrawImage(img, new Rectangle(0, 0, this.Width, this.Height)); //now draw the original indexed image (from the file) to the non-indexed image
+            //g.DrawImage(img, new Rectangle(0, 0, 640, 480)); //now draw the original indexed image (from the file) to the non-indexed image
 
             //draw all the mission polygons
             for (int i = 0; i < ps.msnSum.Count; i++)
@@ -275,6 +298,7 @@ namespace Waldo_FCS
 
         private void btnBack_Click(object sender, EventArgs e)
         {
+            //debugFile.Close();
             this.Visible = false;
 
         }

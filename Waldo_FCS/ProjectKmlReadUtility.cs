@@ -86,30 +86,30 @@ namespace Waldo_FCS
         public ProjectKmlReadUtility(String FlightPlanFolder, String ProjectName)
         {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            //the above structures are filled by GeoScanner when a mission is selected
+            //the above structures are filled when a mission is selected
             //GepScanner data folders are set up for each mission under the polygon (project) name folder
-            //as a mission is flown (sim or actual), the .imu, .gps, .trg files are prepared with geoscanner along with a new file saving endpoints of flown flight lines. 
+            //as a mission is flown (sim or actual), the .imu, .gps, .trg files are prepared with Waldo_FCS along with a new file saving endpoints of flown flight lines. 
             //the flightline files will be denoted as being either from a sim or an actual mission (.fla or .fls)
             //The .fla/.fls files will normally have the identical endpoints as the plan -- when flight lines are completed.
             //but they may also have a truncated flight line if the system was shutdown in the middle of the flight line.
-            //When geoscanner is started/restarted, and a mission is selected, the .fla or fls file will be accessed. 
-            //Only.fls or only .fla files will be access depending on if the geoscanner was started in sim or actual (non-sim).
+            //When Waldo_FCS is started/restarted, and a mission is selected, the .fla or fls file will be accessed. 
+            //Only.fls or only .fla files will be access depending on if the Waldo_FCS was started in sim or actual (non-sim).
 
             // the procedure performed in this utility is:
             //    read the kml file abd get the FlightLineOriginalPlan List
             //    read ALL the appropriate .fla or .fls files and compile the FlightLinesFlown List
             //    define the FlightLinesCurrentPlan List as the remaining flight lines to be flown
-            //Geoscanner must compute (and write) the flight endpoints (as the images are triggered) so that these endpoints fall on a grid.
+            //Waldo_FCS must compute (and write) the flight endpoints (as the images are triggered) so that these endpoints fall on a grid.
             //This grid is spaced laterally by the flight line spacing (set in FlightLinesOriginalPlan) and the downrangeTriggerSpacingMeters.
             //Nominally, the endpoints will identically match the plan endpoints.  
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-            //The GeoScanner Hard Drive will have a top-level folder called _FlightPlans
+            //The Waldo_FCS Hard Drive will have a top-level folder called _FlightPlans
             //The _FlightPlans folder will contain sub-folders that represent "Jobs" -- a Job would be considered "GoogleCities"
             //beneath the jobs Folder will be Project Folders; e.g., Perth, Melbourne, Brisbane, ... will be called "Projects"
             //within each Project Folder will be a .kml that contains a polygon defining the coverage area defined by the client
-            // The pilot will select a Job on the first GeoScanner Screen, and then will select a Project.
+            // The pilot will select a Job on the first Waldo_FCS Screen, and then will select a Project.
 
             //The pilot will be presented with the Project polygon outline showing how the polygon is broken into groups of flight lines.
             //An individual group of flight lines will be called a "Mission" -- usually, a Mission will be completed in a single takeoff and landing
@@ -511,7 +511,7 @@ namespace Waldo_FCS
             }  //end of collectiong the mission data
 
             //////////////////////////////////////////////////////////////
-            // the Project Summary for GeoScanner is Complete
+            // the Project Summary for Waldo_FCS is Complete
             //////////////////////////////////////////////////////////////
         }
 

@@ -106,6 +106,9 @@ namespace Waldo_FCS
             //the platform dynamics will be used to define the flightlline flight direction
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            //the GPS messages from the receiver might be bad
+            bool dataIsAcceptable = false;  //use this to vet the quality of the data from this routine
+  
             //compute dot product of the vector from FLstart to the platform position, divided by the line length
             //this will be negative if the point is outside start and > 1.0 if the point is beyond end
             //can be used to see if the intersection is between p1 and p2            

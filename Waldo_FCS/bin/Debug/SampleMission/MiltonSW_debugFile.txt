@@ -1,0 +1,89 @@
+Opened Debug session for Project: MiltonSW
+Analyzing the pre-flown missions 
+testing for missionFolder:  C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\SampleMission\MiltonSW\Mission_000\Data\
+ folder found
+FoundSystem.String[]  .kml files
+getting photocenters from: C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\SampleMission\MiltonSW\Mission_000\Data\00_20130522_54507_Triggers.kml
+deleted Bad kml file --- delete.
+found 0 total photocenters for all kml files
+
+
+Completed Sort of the image strings
+Total photocenters required to complete this mission: 191
+completed the prior flown analysis for mission 0
+completed the prior flown analysis for all missions 
+Selected Mission:  0
+FL= 0 tgo= 63.72 numPics= 0 vMag = 51.40 alongFL= -3274.97 toFL= -657.43 VelAlong= 51.40 HdgToFL= 0.00 lat= 30.57947 lon= -87.08792
+FL= 0 tgo= 63.44 numPics= 0 vMag = 51.40 alongFL= -3255.57 toFL= -656.34 VelAlong= 51.32 HdgToFL= 3.22 lat= 30.57965 lon= -87.08791
+FL= 0 tgo= 63.35 numPics= 0 vMag = 51.40 alongFL= -3234.12 toFL= -653.85 VelAlong= 51.06 HdgToFL= 6.64 lat= 30.57984 lon= -87.08788
+FL= 0 tgo= 63.45 numPics= 0 vMag = 51.40 alongFL= -3212.86 toFL= -650.14 VelAlong= 50.64 HdgToFL= 9.88 lat= 30.58003 lon= -87.08784
+FL= 0 tgo= 63.72 numPics= 0 vMag = 51.40 alongFL= -3191.82 toFL= -645.31 VelAlong= 50.10 HdgToFL= 12.94 lat= 30.58022 lon= -87.08779
+FL= 0 tgo= 64.12 numPics= 0 vMag = 51.40 alongFL= -3171.05 toFL= -639.43 VelAlong= 49.45 HdgToFL= 15.82 lat= 30.58041 lon= -87.08773
+FL= 0 tgo= 64.64 numPics= 0 vMag = 51.40 alongFL= -3150.57 toFL= -632.57 VelAlong= 48.74 HdgToFL= 18.51 lat= 30.58060 lon= -87.08766
+FL= 0 tgo= 65.25 numPics= 0 vMag = 51.40 alongFL= -3130.42 toFL= -624.82 VelAlong= 47.98 HdgToFL= 21.03 lat= 30.58078 lon= -87.08758
+FL= 0 tgo= 65.93 numPics= 0 vMag = 51.40 alongFL= -3110.61 toFL= -616.26 VelAlong= 47.18 HdgToFL= 23.37 lat= 30.58096 lon= -87.08749
+FL= 0 tgo= 66.65 numPics= 0 vMag = 51.40 alongFL= -3091.13 toFL= -606.95 VelAlong= 46.38 HdgToFL= 25.54 lat= 30.58113 lon= -87.08740
+FL= 0 tgo= 67.40 numPics= 0 vMag = 51.40 alongFL= -3071.98 toFL= -596.98 VelAlong= 45.58 HdgToFL= 27.53 lat= 30.58131 lon= -87.08729
+FL= 0 tgo= 68.15 numPics= 0 vMag = 51.40 alongFL= -3053.17 toFL= -586.39 VelAlong= 44.80 HdgToFL= 29.35 lat= 30.58148 lon= -87.08718
+FL= 0 tgo= 68.89 numPics= 0 vMag = 51.40 alongFL= -3034.67 toFL= -575.27 VelAlong= 44.05 HdgToFL= 31.02 lat= 30.58164 lon= -87.08707
+FL= 0 tgo= 69.60 numPics= 0 vMag = 51.40 alongFL= -3016.46 toFL= -563.67 VelAlong= 43.34 HdgToFL= 32.52 lat= 30.58181 lon= -87.08694
+FL= 0 tgo= 70.26 numPics= 0 vMag = 51.40 alongFL= -2998.54 toFL= -551.63 VelAlong= 42.68 HdgToFL= 33.87 lat= 30.58197 lon= -87.08682
+FL= 0 tgo= 70.86 numPics= 0 vMag = 51.40 alongFL= -2980.87 toFL= -539.23 VelAlong= 42.07 HdgToFL= 35.07 lat= 30.58213 lon= -87.08669
+FL= 0 tgo= 71.38 numPics= 0 vMag = 51.40 alongFL= -2963.43 toFL= -526.50 VelAlong= 41.52 HdgToFL= 36.13 lat= 30.58229 lon= -87.08656
+FL= 0 tgo= 71.81 numPics= 0 vMag = 51.40 alongFL= -2946.20 toFL= -513.50 VelAlong= 41.03 HdgToFL= 37.05 lat= 30.58244 lon= -87.08642
+FL= 0 tgo= 72.15 numPics= 0 vMag = 51.40 alongFL= -2929.15 toFL= -500.26 VelAlong= 40.60 HdgToFL= 37.83 lat= 30.58260 lon= -87.08628
+FL= 0 tgo= 72.38 numPics= 0 vMag = 51.40 alongFL= -2912.25 toFL= -486.82 VelAlong= 40.23 HdgToFL= 38.49 lat= 30.58275 lon= -87.08614
+FL= 0 tgo= 72.51 numPics= 0 vMag = 51.40 alongFL= -2895.48 toFL= -473.23 VelAlong= 39.93 HdgToFL= 39.02 lat= 30.58290 lon= -87.08600
+FL= 0 tgo= 72.51 numPics= 0 vMag = 51.40 alongFL= -2878.81 toFL= -459.52 VelAlong= 39.70 HdgToFL= 39.43 lat= 30.58305 lon= -87.08586
+FL= 0 tgo= 72.41 numPics= 0 vMag = 51.40 alongFL= -2862.20 toFL= -445.72 VelAlong= 39.53 HdgToFL= 39.73 lat= 30.58320 lon= -87.08572
+FL= 0 tgo= 72.19 numPics= 0 vMag = 51.40 alongFL= -2845.65 toFL= -431.86 VelAlong= 39.42 HdgToFL= 39.92 lat= 30.58335 lon= -87.08557
+FL= 0 tgo= 71.86 numPics= 0 vMag = 51.40 alongFL= -2829.11 toFL= -417.98 VelAlong= 39.37 HdgToFL= 40.01 lat= 30.58350 lon= -87.08543
+FL= 0 tgo= 71.43 numPics= 0 vMag = 51.40 alongFL= -2812.58 toFL= -404.11 VelAlong= 39.37 HdgToFL= 40.00 lat= 30.58365 lon= -87.08528
+FL= 0 tgo= 70.96 numPics= 0 vMag = 51.40 alongFL= -2797.91 toFL= -391.84 VelAlong= 39.43 HdgToFL= 39.91 lat= 30.58378 lon= -87.08515
+FL= 0 tgo= 70.35 numPics= 0 vMag = 51.40 alongFL= -2781.31 toFL= -378.05 VelAlong= 39.54 HdgToFL= 39.72 lat= 30.58393 lon= -87.08501
+FL= 0 tgo= 69.66 numPics= 0 vMag = 51.40 alongFL= -2764.64 toFL= -364.33 VelAlong= 39.69 HdgToFL= 39.45 lat= 30.58408 lon= -87.08487
+FL= 0 tgo= 68.89 numPics= 0 vMag = 51.40 alongFL= -2747.88 toFL= -350.71 VelAlong= 39.89 HdgToFL= 39.10 lat= 30.58423 lon= -87.08473
+FL= 0 tgo= 67.87 numPics= 0 vMag = 51.40 alongFL= -2727.27 toFL= -334.27 VelAlong= 40.19 HdgToFL= 38.57 lat= 30.58442 lon= -87.08455
+FL= 0 tgo= 66.96 numPics= 0 vMag = 51.40 alongFL= -2710.27 toFL= -320.97 VelAlong= 40.47 HdgToFL= 38.06 lat= 30.58457 lon= -87.08442
+FL= 0 tgo= 66.02 numPics= 0 vMag = 51.40 alongFL= -2693.13 toFL= -307.83 VelAlong= 40.79 HdgToFL= 37.47 lat= 30.58473 lon= -87.08428
+FL= 0 tgo= 65.04 numPics= 0 vMag = 51.40 alongFL= -2675.85 toFL= -294.89 VelAlong= 41.14 HdgToFL= 36.83 lat= 30.58488 lon= -87.08414
+FL= 0 tgo= 64.03 numPics= 0 vMag = 51.40 alongFL= -2658.42 toFL= -282.16 VelAlong= 41.52 HdgToFL= 36.13 lat= 30.58504 lon= -87.08401
+FL= 0 tgo= 63.01 numPics= 0 vMag = 51.40 alongFL= -2640.81 toFL= -269.67 VelAlong= 41.91 HdgToFL= 35.37 lat= 30.58520 lon= -87.08388
+FL= 0 tgo= 61.98 numPics= 0 vMag = 51.40 alongFL= -2623.04 toFL= -257.42 VelAlong= 42.32 HdgToFL= 34.57 lat= 30.58536 lon= -87.08375
+FL= 0 tgo= 61.06 numPics= 0 vMag = 51.40 alongFL= -2607.16 toFL= -246.77 VelAlong= 42.70 HdgToFL= 33.83 lat= 30.58550 lon= -87.08364
+FL= 0 tgo= 60.03 numPics= 0 vMag = 51.40 alongFL= -2589.04 toFL= -235.03 VelAlong= 43.13 HdgToFL= 32.95 lat= 30.58567 lon= -87.08352
+FL= 0 tgo= 59.00 numPics= 0 vMag = 51.40 alongFL= -2570.74 toFL= -223.58 VelAlong= 43.57 HdgToFL= 32.04 lat= 30.58583 lon= -87.08340
+FL= 0 tgo= 57.99 numPics= 0 vMag = 51.40 alongFL= -2552.26 toFL= -212.42 VelAlong= 44.01 HdgToFL= 31.11 lat= 30.58600 lon= -87.08328
+FL= 0 tgo= 57.00 numPics= 0 vMag = 51.40 alongFL= -2533.59 toFL= -201.58 VelAlong= 44.45 HdgToFL= 30.15 lat= 30.58617 lon= -87.08317
+FL= 0 tgo= 56.03 numPics= 0 vMag = 51.40 alongFL= -2514.74 toFL= -191.06 VelAlong= 44.88 HdgToFL= 29.17 lat= 30.58634 lon= -87.08306
+FL= 0 tgo= 55.08 numPics= 0 vMag = 51.40 alongFL= -2495.71 toFL= -180.87 VelAlong= 45.31 HdgToFL= 28.17 lat= 30.58651 lon= -87.08296
+FL= 0 tgo= 54.15 numPics= 0 vMag = 51.40 alongFL= -2476.50 toFL= -171.01 VelAlong= 45.73 HdgToFL= 27.16 lat= 30.58668 lon= -87.08285
+FL= 0 tgo= 53.26 numPics= 0 vMag = 51.40 alongFL= -2457.12 toFL= -161.50 VelAlong= 46.14 HdgToFL= 26.15 lat= 30.58686 lon= -87.08275
+FL= 0 tgo= 52.39 numPics= 0 vMag = 51.40 alongFL= -2437.58 toFL= -152.33 VelAlong= 46.53 HdgToFL= 25.14 lat= 30.58703 lon= -87.08266
+FL= 0 tgo= 51.54 numPics= 0 vMag = 51.40 alongFL= -2417.88 toFL= -143.50 VelAlong= 46.91 HdgToFL= 24.13 lat= 30.58721 lon= -87.08257
+FL= 0 tgo= 50.73 numPics= 0 vMag = 51.40 alongFL= -2398.02 toFL= -135.03 VelAlong= 47.27 HdgToFL= 23.12 lat= 30.58739 lon= -87.08248
+FL= 0 tgo= 49.94 numPics= 0 vMag = 51.40 alongFL= -2378.02 toFL= -126.90 VelAlong= 47.62 HdgToFL= 22.12 lat= 30.58757 lon= -87.08239
+FL= 0 tgo= 49.18 numPics= 0 vMag = 51.40 alongFL= -2357.89 toFL= -119.11 VelAlong= 47.94 HdgToFL= 21.14 lat= 30.58775 lon= -87.08231
+FL= 0 tgo= 48.53 numPics= 0 vMag = 51.40 alongFL= -2339.95 toFL= -112.49 VelAlong= 48.22 HdgToFL= 20.28 lat= 30.58792 lon= -87.08224
+FL= 0 tgo= 47.82 numPics= 0 vMag = 51.40 alongFL= -2319.58 toFL= -105.34 VelAlong= 48.51 HdgToFL= 19.32 lat= 30.58810 lon= -87.08217
+FL= 0 tgo= 47.13 numPics= 0 vMag = 51.40 alongFL= -2299.09 toFL= -98.54 VelAlong= 48.78 HdgToFL= 18.38 lat= 30.58828 lon= -87.08210
+FL= 0 tgo= 46.47 numPics= 0 vMag = 51.40 alongFL= -2278.50 toFL= -92.06 VelAlong= 49.03 HdgToFL= 17.46 lat= 30.58847 lon= -87.08203
+FL= 0 tgo= 45.83 numPics= 0 vMag = 51.40 alongFL= -2257.81 toFL= -85.90 VelAlong= 49.27 HdgToFL= 16.57 lat= 30.58866 lon= -87.08197
+FL= 0 tgo= 45.21 numPics= 0 vMag = 51.40 alongFL= -2237.03 toFL= -80.06 VelAlong= 49.48 HdgToFL= 15.70 lat= 30.58884 lon= -87.08191
+FL= 0 tgo= 44.61 numPics= 0 vMag = 51.40 alongFL= -2216.16 toFL= -74.52 VelAlong= 49.68 HdgToFL= 14.86 lat= 30.58903 lon= -87.08185
+FL= 0 tgo= 44.02 numPics= 0 vMag = 51.40 alongFL= -2195.22 toFL= -69.29 VelAlong= 49.86 HdgToFL= 14.04 lat= 30.58922 lon= -87.08179
+FL= 0 tgo= 43.46 numPics= 0 vMag = 51.40 alongFL= -2174.21 toFL= -64.34 VelAlong= 50.03 HdgToFL= 13.25 lat= 30.58941 lon= -87.08174
+FL= 0 tgo= 42.91 numPics= 0 vMag = 51.40 alongFL= -2153.13 toFL= -59.66 VelAlong= 50.18 HdgToFL= 12.50 lat= 30.58960 lon= -87.08169
+FL= 0 tgo= 42.37 numPics= 0 vMag = 51.40 alongFL= -2131.99 toFL= -55.26 VelAlong= 50.32 HdgToFL= 11.76 lat= 30.58979 lon= -87.08165
+FL= 0 tgo= 41.84 numPics= 0 vMag = 51.40 alongFL= -2110.81 toFL= -51.12 VelAlong= 50.44 HdgToFL= 11.06 lat= 30.58998 lon= -87.08161
+FL= 0 tgo= 41.33 numPics= 0 vMag = 51.40 alongFL= -2089.57 toFL= -47.23 VelAlong= 50.56 HdgToFL= 10.39 lat= 30.59017 lon= -87.08156
+ flight line capture event 
+FL= 0 tgo= 40.83 numPics= 0 vMag = 51.40 alongFL= -2068.30 toFL= -43.57 VelAlong= 50.66 HdgToFL= 9.75 lat= 30.59037 lon= -87.08153
+FL= 0 tgo= 40.39 numPics= 0 vMag = 51.40 alongFL= -2049.42 toFL= -40.51 VelAlong= 50.74 HdgToFL= 9.20 lat= 30.59054 lon= -87.08150
+FL= 0 tgo= 39.96 numPics= 0 vMag = 51.40 alongFL= -2030.52 toFL= -37.63 VelAlong= 50.81 HdgToFL= 8.68 lat= 30.59071 lon= -87.08147
+FL= 0 tgo= 39.48 numPics= 0 vMag = 51.40 alongFL= -2009.15 toFL= -34.58 VelAlong= 50.89 HdgToFL= 8.12 lat= 30.59090 lon= -87.08143
+FL= 0 tgo= 39.07 numPics= 0 vMag = 51.40 alongFL= -1990.20 toFL= -32.04 VelAlong= 50.94 HdgToFL= 7.64 lat= 30.59107 lon= -87.08141
+FL= 0 tgo= 38.60 numPics= 0 vMag = 51.40 alongFL= -1968.78 toFL= -29.36 VelAlong= 51.00 HdgToFL= 7.13 lat= 30.59127 lon= -87.08138
+FL= 0 tgo= 38.14 numPics= 0 vMag = 51.40 alongFL= -1947.33 toFL= -26.86 VelAlong= 51.06 HdgToFL= 6.64 lat= 30.59146 lon= -87.08135
+FL= 0 tgo= 37.69 numPics= 0 vMag = 51.40 alongFL= -1925.87 toFL= -24.54 VelAlong= 51.10 HdgToFL= 6.18 lat= 30.59165 lon= -87.08133
+FL= 0 tgo= 37.24 numPics= 0 vMag = 51.40 alongFL= -1904.39 toFL= -22.38 VelAlong= 51.14 HdgToFL= 5.74 lat= 30.59185 lon= -87.08131

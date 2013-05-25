@@ -6,13 +6,20 @@ using System.IO;
 
 namespace Waldo_FCS
 {
-    class kmlPhotoCenterWriter
+    class kmlWriter
     {
         StreamWriter FlyKmlFile;
+        String projectName;
 
-        public kmlPhotoCenterWriter(String kmlFilename, String projectName)
+        public kmlWriter(String kmlFilename, String _projectName, String InfoType)
         {
-            FlyKmlFile = new StreamWriter(kmlFilename);
+            //////////////////////////////////////////////////////////////////////////////////////
+            //infoType = TRIGGERS, POSITION
+            //////////////////////////////////////////////////////////////////////////////////////
+
+            projectName = _projectName;
+
+            FlyKmlFile = new StreamWriter(kmlFilename + "_" + InfoType + ".kml");
             FlyKmlFile.AutoFlush = true;
 
             //open the kml file
@@ -21,12 +28,13 @@ namespace Waldo_FCS
             FlyKmlFile.WriteLine(@"xmlns:gx=""http://www.google.com/kml/ext/2.2""");
             FlyKmlFile.WriteLine(@"xmlns:kml=""http://www.opengis.net/kml/2.2""");
             FlyKmlFile.WriteLine(@"xmlns:atom=""http://www.w3.org/2005/Atom"">");
-            FlyKmlFile.WriteLine(@"<Document> <name>" + projectName + "</name>");
+            FlyKmlFile.WriteLine(@"<Document> <name>" + projectName + "_" +  InfoType + "</name>");
             FlyKmlFile.WriteLine(@"<Style id=""whiteDot""><IconStyle><Icon>");
             FlyKmlFile.WriteLine(@"<href>http://maps.google.com/mapfiles/kml/pal4/icon57.png</href>");      //locates a generic "point" icon
             FlyKmlFile.WriteLine(@"</Icon></IconStyle><LabelStyle> <scale>0</scale></LabelStyle></Style>"); //defines that there is to be no label
 
         }
+
         public void writePhotoCenterRec(int missionNumber, int currentFlightLine, int offset, int currentPhotocenter, PosVel platFormPosVel)
         {
 
@@ -36,6 +44,22 @@ namespace Waldo_FCS
                 " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2}</coordinates> </Point> </Placemark>",
                     platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, 0));
 
+        }
+
+        //write a line structure in a kml file -- used to store the platform position
+        public void writeKmlLineHeader()  // must precede a kml line tag structure
+        {
+            String msg = @"<Placemark id=""AOIBOUNDRY"">  <name>" + projectName +
+                @"</name>  <styleUrl>#redLine</styleUrl> <LineString> <tessellate>1</tessellate> <coordinates>";
+            FlyKmlFile.WriteLine(msg);
+        }
+        public void writePositionRec(PosVel platFormPosVel)
+        {
+            FlyKmlFile.WriteLine(String.Format("{0:####.000000},{1:###.000000},{2}", platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, 0.0) );
+        }
+        public void writeKmlLineClosure()
+        {
+            FlyKmlFile.WriteLine(@"</coordinates> </LineString>  </Placemark>");
         }
 
         //desctuctor

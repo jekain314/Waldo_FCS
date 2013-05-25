@@ -33,6 +33,7 @@
             // 
             // btnBack
             // 
+            this.btnBack.FlatAppearance.BorderSize = 0;
             this.btnBack.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnBack.Location = new System.Drawing.Point(22, 393);
             this.btnBack.Name = "btnBack";
@@ -46,6 +47,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(624, 442);
             this.Controls.Add(this.btnBack);
             this.Name = "MissionSelection";

@@ -41,15 +41,15 @@ namespace Waldo_FCS
         public ProjectUpdateFlightLines getProjectUpdateFlightLines() { return projUpdate; }
 
 
-        public PriorFlownMissions(String FlightPlanFolder, ProjectSummary _projSum, StreamWriter _debugFile)
+
+        public PriorFlownMissions(String FlightPlanFolder, ProjectSummary _projSum)
         {
 
             projUpdate = new ProjectUpdateFlightLines();        //this is the struct containing all missions that will be prepared herein
             projUpdate.msnUpdate = new List<MissionUpdateFlightlines>(); //flight line structure for an individual mission 
             projSum = _projSum; //input mission planning file extracted from the project plan kml
 
-            debugFile = _debugFile;
-
+            debugFile = new StreamWriter(@"C:\temp\priorMissisons.txt");
             debugFile.WriteLine("Analyzing the pre-flown missions ");
 
             int missionCounter = 0;
@@ -70,7 +70,7 @@ namespace Waldo_FCS
                 //NOTE:  we only add to the structure if there is a prior-flown folder
                 // if there are no prior flown missions, there will be nothing inthe structure;
 
-                //temporary mission structure filled below and atted to projUpdate 
+                //temporary mission structure filled below and added to projUpdate 
                 MissionUpdateFlightlines missionUpdate = new MissionUpdateFlightlines();
 
                 missionUpdate.missionNumber = missionCounter;
@@ -78,7 +78,8 @@ namespace Waldo_FCS
                 //flight line List to be filled and added to the structure
                 missionUpdate.flightLineUpdate = new List<FirstLastUnflownPhotocenter>();
 
-               //get the String Collection of as-flown kml file names in each of the mission data folders
+                //get the String Collection of as-flown kml file names in each of the mission data folders
+                //we sould make these trigger file -- need to separate the simulated mssions and the live missions
                 String[] kmlFlightFiles = Directory.GetFiles(MissionDataFolder, "*.kml");
 
                 debugFile.WriteLine("Found" + kmlFlightFiles.ToString() + "  .kml files");
@@ -132,7 +133,7 @@ namespace Waldo_FCS
                 debugFile.WriteLine("found " + collectedImages.Count.ToString() + " total photocenters for all kml files");
 
                 //sort the collection in ascending order  "Mission#_FL#_pohto#" 
-                //photonumbers increase fro Start-to-End (e.g., start at South for NS lines)
+                //photocenter names increase from Start-to-End (e.g., start at South for NS lines)
                 collectedImages.Sort();
 
                 debugFile.WriteLine();
@@ -196,7 +197,7 @@ namespace Waldo_FCS
                     }
 
                     //the "currentFlightLine" starts at zero and increments when we observe a new flight line number
-                    //NOTE: we must exit this at the very last record in the collection so that FL record will be proessed
+                    //NOTE: we must exit this at the very last record in the collection so that FL record will be processed
                     try
                     {
                         if (currentFlightLine == flightlineNumber)
@@ -211,9 +212,9 @@ namespace Waldo_FCS
                         MessageBox.Show(" bad photoCenter value:  " + photoCenter);
                     }
 
-                    //here we have detectd a new flight that was previously flown -- so process the last one
+                    //here we have detected a new flight that was previously flown -- so process the last one
 
-                    int early = 999;                  //if no photos collected for this flight line, earliest is zero
+                    int early = 999;   //if no photos collected for this flight line, earliest is zero
                     int late  = 0;     //if no photos collected for this flight line, latest is at the end
 
                     if (totalPhotoCentersCollected > 0)
@@ -237,10 +238,19 @@ namespace Waldo_FCS
                     //    debugFile.WriteLine(currentFlightLine.ToString("D2") + "  " + j.ToString("D2") + "  " + photoCentersCollected[j].ToString("D2"));
                     //}
 
+                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    //refly partial flight line strategy
+                    //we may have deviated fro the line in the middle and got back on.
+                    //we would need to refly ony the center portion
+                    //note this could have happened twice on a long line
+                    //for example, we got image 0-10, missed 11-15, got 16-30,  missed 31-35, and gotthe remainder 36-55
+                    //we would refly photocenters: 11-35 for this case. Starting with the earliest miss and ending with the latest miss
+                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
                     FirstLastUnflownPhotocenter elPC;
                     if (early == 999) early = 0;  //early == 999 means ALL expected images were collected -- completed flight line
                     elPC.early = early;   //earliest of the unflown images
-                    elPC.late  = late;    //latest of the uflown images
+                    elPC.late  = late;    //latest of the unflown images
 
                     debugFile.WriteLine("expected photos " + numPhotoCenters.ToString("D3") + "  Earliest uncollected " + early.ToString("D3") + "  Latest uncollected " + late.ToString("D3"));
 

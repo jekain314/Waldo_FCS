@@ -75,7 +75,7 @@
   <ItemGroup>
     <Compile Include="FlightLineGeometry.cs" />
     <Compile Include="GeoDeticToUTM.cs" />
-    <Compile Include="kmlPhotoCenterWriter.cs" />
+    <Compile Include="kmlWriter.cs" />
     <Compile Include="Mission.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -139,6 +139,7 @@
     <None Include="app.config" />
     <None Include="ClassDiagram1.cd" />
     <None Include="ClassDiagram2.cd" />
+    <None Include="ClassDiagram3.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

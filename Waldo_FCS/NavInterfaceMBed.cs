@@ -74,7 +74,7 @@ namespace Waldo_FCS
         Mutex navIFMutex_;
         int serialReadThreshold_;
         bool serialInit_;
-        bool writeNavFiles_;
+        bool writeNavFiles;
         Queue<String> serialBuffer_;
         Queue<String> readBuffer_;
         Queue<String> writeBuffer_;
@@ -245,7 +245,7 @@ namespace Waldo_FCS
 
 	        LogData("Test port : " + comID);  //present to the log the progress
 
-	        for (int b = 8; (b <= 8) && (serialPort_ == null); b++)  //just goes through this once??
+	        for (int b = 2; (b <= 2) && (serialPort_ == null); b++)  //just goes through this once??
 	        {
 		        int baudRate = 115200*b;
 		        LogData("Test baudRate : " + baudRate.ToString("0"));  //present to progress to the log
@@ -630,7 +630,7 @@ namespace Waldo_FCS
 		        else if (strEntries[1] == "RECORD_DATA")
 		        {
 			        //this is a toggle ..........................
-			        if ((writeNavFiles_ == true) &&
+                    if ((writeNavFiles == true) &&
 				        (strEntries[2] != "Y"))
 			        {
 				        // need to flag error
@@ -643,7 +643,7 @@ namespace Waldo_FCS
             }
         }
 
-        public void Close(Label userMessage,  ProgressBar transferProgress)
+        public void Close(Label userMessage,  ProgressBar transferProgress, String MissionNameWithPath)
         {
             ////////////////////////////////////////////////////////
             //orderly shutdown the mbed serial interface
@@ -653,6 +653,7 @@ namespace Waldo_FCS
             transferProgress.Visible = true;
             userMessage.Visible = true;
             userMessage.Text = "Transferring Nav file ...";
+            Application.DoEvents();
 
             //LogData(" entering the nav close procedure \n");
             SendCommandToMBed(NAVMBED_CMDS.GET_MBED_FILE);
@@ -664,7 +665,7 @@ namespace Waldo_FCS
             ReadMessages();
             ParseMessages();
 
-            FileStream fs = File.Create("c:\\TEMP\\NAV.BIN", 2048, FileOptions.None);
+            FileStream fs = File.Create(MissionNameWithPath + ".nav", 2048, FileOptions.None);
             BinaryWriter BW = new BinaryWriter(fs);
             byte[] byteBuff = new byte[2 * 4096];
 
@@ -696,6 +697,9 @@ namespace Waldo_FCS
             ParseMessages();
 
             maxBytesInBuff = 0;
+            int missedBytes = 0;
+
+            Application.DoEvents();
 
             Stopwatch transferTime = new Stopwatch();
             Stopwatch testForBytes = new Stopwatch();
@@ -705,7 +709,7 @@ namespace Waldo_FCS
             {
                 int btr = serialPort_.BytesToRead;
                 if (btr == 0) continue;
-                if (btr > 4096) btr = 4096;
+                if (btr > 4096) { missedBytes += btr - 4096; btr = 4096; }
                 serialPort_.Read(byteBuff, 0, btr);
                 BW.Write(byteBuff, 0, btr);
                 nBytes += btr;
@@ -714,7 +718,6 @@ namespace Waldo_FCS
 
                 if (totalBytesWrittenByMbed > 0)
                     transferProgress.Value = (int)(100.0 * (double)nBytes / (double)totalBytesWrittenByMbed);
-                Application.DoEvents();
             }
             trTime = transferTime.ElapsedMilliseconds;
             bytesPerSec = (nBytes / 1000.0) / (trTime / 1000.0);
