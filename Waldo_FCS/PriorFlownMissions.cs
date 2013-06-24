@@ -8,19 +8,24 @@ using System.Windows.Forms;
 
 namespace Waldo_FCS
 {
+    //contains first and last UNFLOWN photocenter on a flight line
     public struct FirstLastUnflownPhotocenter
     {
-        public int FLNumber;
-        public int early;
-        public int late;
+        public int FLNumber;    //flight line number
+        public int early;       //earliest unflosn photocenter
+        public int late;        //latest unflown photocenter
     }
+
+    //summary of the unflown portion of the mission
     public struct MissionUpdateFlightlines
     {
-        public int numberOfFlightLines;
-        public int missionNumber;
-        public double percentCompleted;
-        public List<FirstLastUnflownPhotocenter> flightLineUpdate;
+        public int numberOfFlightLines;                             //total flight lines this mission
+        public int missionNumber;                                   //mission number
+        public double percentCompleted;                             //percent of the plan that has been completed
+        public List<FirstLastUnflownPhotocenter> flightLineUpdate;  //per fight line update parameters
     }
+
+    //summarizes all the flown missions for a project
     public struct ProjectUpdateFlightLines
     {
         public int numberOfMissions;
@@ -39,7 +44,6 @@ namespace Waldo_FCS
 
         //just return the flight line structure after preparing it in the constructor below
         public ProjectUpdateFlightLines getProjectUpdateFlightLines() { return projUpdate; }
-
 
 
         public PriorFlownMissions(String FlightPlanFolder, ProjectSummary _projSum)
@@ -80,7 +84,7 @@ namespace Waldo_FCS
 
                 //get the String Collection of as-flown kml file names in each of the mission data folders
                 //we sould make these trigger file -- need to separate the simulated mssions and the live missions
-                String[] kmlFlightFiles = Directory.GetFiles(MissionDataFolder, "*.kml");
+                String[] kmlFlightFiles = Directory.GetFiles(MissionDataFolder, "*Triggers.kml");
 
                 debugFile.WriteLine("Found" + kmlFlightFiles.ToString() + "  .kml files");
 
@@ -91,7 +95,7 @@ namespace Waldo_FCS
                 //st is the name of a preflown flight line
                 foreach (String st in kmlFlightFiles)
                 {
-                    debugFile.WriteLine("getting photocenters from: " + st);
+                    debugFile.WriteLine("getting prior flown photocenters from: " + st);
 
                     /////////////////////////////////////////////////////////////////////////////////////
                     ///Read the kml file and get the photocenter names ...........
@@ -100,32 +104,31 @@ namespace Waldo_FCS
                     XmlTextReader tr = new XmlTextReader(st);
                     int imagesTaken = 0;
 
-                    if (tr.AttributeCount > 0)
+                    while (!tr.EOF && tr.Read())  //loop through all the kml elements
                     {
-                        while (!tr.EOF && tr.Read())  //loop through all the kml elements
+                        if (tr.Name == "Placemark" && tr.IsStartElement())  //locate each placemark -- these contain the photocenters
                         {
-                            if (tr.Name == "Placemark" && tr.IsStartElement())  //locate each placemark -- these contain the photocenters
+                            while (!tr.EOF && tr.Read())
                             {
-                                while (!tr.EOF && tr.Read())
+                                if (tr.IsStartElement() && tr.Name == "name")  //photocenter name stores the MissionNumber_FlightLine_photocenterNumber
                                 {
-                                    if (tr.IsStartElement() && tr.Name == "name")  //photocenter name stores the MissionNumber_FlightLine_photocenterNumber
+                                    if (!tr.EOF)
                                     {
-                                        if (!tr.EOF)
-                                        {
-                                            tr.Read();
-                                            collectedImages.Add(tr.Value);  //for the collection of all photocenters
-                                            imagesTaken++;
-                                        }
+                                        tr.Read();
+                                        collectedImages.Add(tr.Value);  //for the collection of all photocenters
+                                        imagesTaken++;
                                     }
                                 }
                             }
                         }
                     }
+
                         
                     if (imagesTaken == 0)
                     {
                         //MessageBox.Show("poorly formed kml file -- deleting " + st);
-                        debugFile.WriteLine("deleted Bad kml file --- delete.");
+                        debugFile.WriteLine("deleted Bad kml Triggers file --- delete.");
+                        tr.Close();
                         File.Delete(st);
                     }
                 }
@@ -155,7 +158,7 @@ namespace Waldo_FCS
                 //do this for flight line zero and then do again when we get a new flight line
                 int currentFlightLine = 0;
                 int numPhotoCenters = 1 + Convert.ToInt32(projSum.msnSum[missionCounter].FlightLinesCurrentPlan[currentFlightLine].FLLengthMeters / projSum.downrangeTriggerSpacing);
-                int[] photoCentersCollected = new int[numPhotoCenters];
+                int[] photoCentersCollected = new int[10*numPhotoCenters];
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 //now we have a sorted list of all images collected for this mission  and for all flightlines 
@@ -267,8 +270,10 @@ namespace Waldo_FCS
                     missionUpdate.flightLineUpdate.Add(elPC);
 
                     currentFlightLine++;
+                    if (currentFlightLine >= projSum.msnSum[missionCounter].numberOfFlightlines) break;
+
                     numPhotoCenters = Convert.ToInt32(projSum.msnSum[missionCounter].FlightLinesCurrentPlan[currentFlightLine].FLLengthMeters / projSum.downrangeTriggerSpacing) + 1;
-                    photoCentersCollected = new int[numPhotoCenters];
+                    photoCentersCollected = new int[10*numPhotoCenters];
 
                     //why do this?  we found a new flight line and need to accept the first of its images
                     totalPhotoCentersCollected++;
@@ -288,6 +293,7 @@ namespace Waldo_FCS
             }   // end of the per mission loop
 
             debugFile.WriteLine("completed the prior flown analysis for all missions ");
+            debugFile.Close();
 
         }       // end of the constructor
 

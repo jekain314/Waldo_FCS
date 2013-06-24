@@ -17,7 +17,8 @@ namespace Waldo_FCS
         public static PointD operator +(PointD p1, PointD p2) { return new PointD(p1.X + p2.X, p1.Y + p2.Y); }
         public static PointD operator -(PointD p1, PointD p2) { return new PointD(p1.X - p2.X, p1.Y - p2.Y); }
         public static PointD operator *(double Multiplier, PointD p1) { return new PointD(Multiplier * p1.X, Multiplier * p1.Y); }
-        public static PointD operator /(double Divisor,    PointD p1) { return new PointD(p1.X/Divisor,      p1.Y/Divisor); }
+        public static PointD operator *(PointD p1, double Multiplier) { return new PointD(Multiplier * p1.X, Multiplier * p1.Y); }
+        public static PointD operator /(PointD p1, double Divisor) { return new PointD(p1.X / Divisor, p1.Y / Divisor); }
         public Point toPoint(PointD pD)
         {
             Point p = new Point(0, 0);

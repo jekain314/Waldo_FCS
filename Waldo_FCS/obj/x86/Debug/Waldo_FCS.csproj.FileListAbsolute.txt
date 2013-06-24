@@ -1,3 +1,38 @@
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\bin\Debug\Waldo_FCS.exe.config
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.pdb
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csprojResolveAssemblyReference.cache
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Mission.resources
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.MissionSelection.resources
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.ProjectSelection.resources
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Properties.Resources.resources
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SimSteeringRosette.resources
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SteeringBarForm.resources
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csproj.GenerateResource.Cache
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\bin\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\bin\Debug\CanonCamera.dll
+C:\Projects\Github\Waldo_FCS_old\Waldo_FCS\bin\Debug\CanonCamera.pdb
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\bin\Debug\Waldo_FCS.exe.config
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.pdb
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\bin\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\bin\Debug\CanonCamera.dll
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\bin\Debug\CanonCamera.pdb
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csprojResolveAssemblyReference.cache
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Mission.resources
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.MissionSelection.resources
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.ProjectSelection.resources
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Properties.Resources.resources
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SimSteeringRosette.resources
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SteeringBarForm.resources
+C:\Projects\Github\Waldo_FCS - Copy\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csproj.GenerateResource.Cache
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe.config
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.dll
+C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.pdb
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csprojResolveAssemblyReference.cache
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Mission.resources
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.MissionSelection.resources
@@ -6,10 +41,20 @@ C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Properties.Resour
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SimSteeringRosette.resources
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SteeringBarForm.resources
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csproj.GenerateResource.Cache
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe.config
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.dll
-C:\Projects\Github\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.pdb
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.exe
 C:\Projects\Github\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.pdb
+C:\Projects\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe.config
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.exe
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.pdb
+C:\Projects\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.exe
+C:\Projects\Waldo_FCS\Waldo_FCS\bin\Debug\Waldo_FCS.pdb
+C:\Projects\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.dll
+C:\Projects\Waldo_FCS\Waldo_FCS\bin\Debug\CanonCamera.pdb
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csprojResolveAssemblyReference.cache
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Mission.resources
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.MissionSelection.resources
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.ProjectSelection.resources
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.Properties.Resources.resources
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SimSteeringRosette.resources
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.SteeringBarForm.resources
+C:\Projects\Waldo_FCS\Waldo_FCS\obj\x86\Debug\Waldo_FCS.csproj.GenerateResource.Cache

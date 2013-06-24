@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+xmlns:gx="http://www.google.com/kml/ext/2.2"
+xmlns:kml="http://www.opengis.net/kml/2.2"
+xmlns:atom="http://www.w3.org/2005/Atom">
+<Document> <name>MiltonSW_Triggers</name>
+<Style id="whiteDot"><IconStyle><Icon>
+<href>http://maps.google.com/mapfiles/kml/pal4/icon57.png</href>
+</Icon></IconStyle><LabelStyle> <scale>0</scale></LabelStyle></Style>
+<Placemark> <name>000_00_000 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081088,30.609031,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_001 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081092,30.613530,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_002 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081095,30.617832,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_003 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081099,30.622104,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_004 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081103,30.626539,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_005 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081106,30.630822,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_006 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081110,30.635276,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_007 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081113,30.639546,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_008 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081117,30.643816,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_009 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081121,30.648302,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_010 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081124,30.652571,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_011 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081128,30.656860,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_012 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081132,30.661320,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_00_013 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.081135,30.665616,0</coordinates> </Point> </Placemark>
+</Document></kml> 

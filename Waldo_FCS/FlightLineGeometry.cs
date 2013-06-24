@@ -84,15 +84,18 @@ namespace Waldo_FCS
             semiInfiniteFLstartGeo = FLstartGeo - del;
             semiInfiniteFLendGeo   = FLendGeo   + del;
 
+
             FLlengthSq = (FLendUTM.X - FLstartUTM.X) * (FLendUTM.X - FLstartUTM.X) + (FLendUTM.Y - FLstartUTM.Y) * (FLendUTM.Y - FLstartUTM.Y);
 
             FLlengthMeters = Math.Sqrt(FLlengthSq);
 
-            //the "+1" ensures a photocenter at the start of the flight line and at the end of the flight line.
+
+           //the "+1" ensures a photocenter at the start of the flight line and at the end of the flight line.
             //The start/ends of the line have been placed on a grid with fixed downrange spacing for the complete project  
             numPhotoCenters = Convert.ToInt32( FLlengthMeters / ps.downrangeTriggerSpacing) + 1;
 
             start2EndFlightLineUnit = new PointD((FLendUTM.X - FLstartUTM.X) / FLlengthMeters, (FLendUTM.Y - FLstartUTM.Y) / FLlengthMeters);
+
         }
 
         public void getPlatformToFLGeometry(PosVel platform)

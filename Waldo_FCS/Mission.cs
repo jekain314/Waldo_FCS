@@ -56,6 +56,9 @@ namespace Waldo_FCS
         //SteeringBarForm steeringBar;
         bool useManualSimulationSteering = false;
         bool currentFlightLineChanged = true;
+        int steeringBarHeightPix = 70;
+
+        bool TerminateMissionOnEXITclicked = false;
 
         int missionTimerTicks = 0;
 
@@ -69,6 +72,8 @@ namespace Waldo_FCS
         bool inturnOutSegment = true;   //this is the part of the dogbone where we turn away from the next line
         double TGO;                     //there are three segments of the time-to-go
 
+        double realTimeMultiplier =1; //e.g., 2 means the realtime runs 2X realtime
+
         int currentFlightLine;  //current line we are using for data collection
         bool currentFlightlineIsOpen;  //current line is actively into the image collection
         int currentPhotocenter;  //based on the original ordering from start-to-end
@@ -80,12 +85,17 @@ namespace Waldo_FCS
         Point semiInfiniteFlightLineEndPix;
         Point FlightLineStartPix;
         Point FlightLineEndPix;
+        int maxAllowablePhotoCentersThisLine = 100;
 
         String photoCenterName;
 
         //bool thisMissionWasPreflown;
         bool enableAutoSwitchFlightLine = false;
         String UTMDesignation = null;
+        double lastPosVelTime;
+        double lastPosVelX;
+        double lastPosVelY;
+        double lastPosVelZ;
 
         int numberCrumbTrailPoints = 50; 
         Point[] crumbTrail;
@@ -133,8 +143,9 @@ namespace Waldo_FCS
         StreamWriter debugFile;
         String MissionDataFolder;
 
-        Stopwatch showMessage;  //causes the message bar to disappear after a specified time
+        //Stopwatch showMessage;  //causes the message bar to disappear after a specified time
         Stopwatch elapsedTime;
+        Stopwatch getPosVelTimer;
 
         int totalImagesThisMission      =0;   //defined by the image spacing and the flight line lengths
         int totalImagesCommanded        =0;   //images commanded by the platform passing near the photocenter 
@@ -182,8 +193,9 @@ namespace Waldo_FCS
             hardwareAttached = hardwareAttached_;
 
             timeFromTrigger = new Stopwatch();
-            showMessage = new Stopwatch();
+            //showMessage = new Stopwatch();
             elapsedTime = new Stopwatch();
+            getPosVelTimer = new Stopwatch();
 
             ib = ps.msnSum[missionNumber].MissionImage;  //placeholder for the project image bounds
 
@@ -210,53 +222,95 @@ namespace Waldo_FCS
 
         void getPosVel()
         {
-            navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.POSVEL_MESSAGE);
-            navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them              
-
-            navIF_.PosVelMessageReceived = false;
-            //ISSUE:  the below statement can hang forever!!!!!!!!!!!!!!!!!!!!!
-            while(!navIF_.PosVelMessageReceived)
+            int numAttempts = 0; int maxAttempts = 5;
+            bool success = false;
+            
+            while (numAttempts < maxAttempts)
             {
-                //read the data received from the mbed to check for a PosVel message
-                navIF_.ReadMessages();
-                navIF_.ParseMessages();
+                navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.POSVEL_MESSAGE);
+                navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them              
+
+                navIF_.PosVelMessageReceived = false;
+
+                getPosVelTimer.Restart();
+                while (!navIF_.PosVelMessageReceived)
+                {
+                    //read the data received from the mbed to check for a PosVel message
+                    navIF_.ReadMessages();
+                    navIF_.ParseMessages();
+                    if (getPosVelTimer.ElapsedMilliseconds > 300)
+                    {
+                        debugFile.WriteLine(" timeout in PosVel request " + numAttempts.ToString()); debugFile.Flush();
+                        numAttempts++;
+                        break;
+                    }
+                    success = true;
+                }
+                navIF_.PosVelMessageReceived = false;
+                if (success) break;
             }
-            navIF_.PosVelMessageReceived = false;
+
+            if (numAttempts == maxAttempts)
+            {
+                labelPilotMessage.Text = " Failure getting GPS data -- restart this mission";
+                debugFile.WriteLine(" maximum attempts at PosVel request "); debugFile.Flush();
+                terminateRealTime();
+            }
         }
 
         void getTrigger()
         {
-            navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.FIRE_TRIGGER);
-            navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them  
-            timeFromTrigger.Start();
+            int numAttempts = 0, maxAttempts = 3;
+            bool success = false;
 
-            navIF_.triggerTimeReceievdFromMbed = false;
-            //ISSUE:  the below statement can hang forever!!!!!!!!!!!!!!!!!!!!!
-            while (!navIF_.triggerTimeReceievdFromMbed)
+            while (numAttempts < maxAttempts)
             {
-                //read the data received from the mbed to check for a PosVel message
-                navIF_.ReadMessages();
-                navIF_.ParseMessages();
+                navIF_.SendCommandToMBed(NavInterfaceMBed.NAVMBED_CMDS.FIRE_TRIGGER);
+                navIF_.WriteMessages(); //if we have messages to write (commands to the mbed) then write them  
+                timeFromTrigger.Restart();
+
+                navIF_.triggerTimeReceievdFromMbed = false;
+                //ISSUE:  the below statement can hang forever!!!!!!!!!!!!!!!!!!!!!
+                while (!navIF_.triggerTimeReceievdFromMbed)
+                {
+                    //read the data received from the mbed to check for a PosVel message
+                    navIF_.ReadMessages();
+                    navIF_.ParseMessages();
+                    if (timeFromTrigger.ElapsedMilliseconds > 3500)
+                    {
+                        numAttempts++;
+                        debugFile.WriteLine(" timeout in getTrigger() " + numAttempts.ToString()); debugFile.Flush();
+                        break;
+                    }
+                    success = true;
+                }
+
+                totalImagesTriggerReceived++;
+                navIF_.triggerTimeReceievdFromMbed = false;
+                if (success) break;
             }
 
-            totalImagesTriggerReceived++;
-            navIF_.triggerTimeReceievdFromMbed = false;
-
+            if (numAttempts == maxAttempts)
+            {
+                debugFile.WriteLine(" maximum attempts at getTrigger() request "); debugFile.Flush();
+                labelPilotMessage.Text = " Failure getting GPS data -- restart this mission";
+                terminateRealTime();
+            }
         }
 
         void ImageAvaiableThreadWorker()
         {             
 
-            while (true)
+            while (true)  //infinite while for thread worker
             {
-                if (camera.ImageReady(out imageFilenameWithPath))
+                if (camera.ImageReady(out imageFilenameWithPath)) //true when image arrived at camera SD card
                 {
                     elapsedTimeToTrigger = timeFromTrigger.ElapsedMilliseconds;
                     debugFile.WriteLine(" image ready: name = " + imageFilenameWithPath + "  triggerTime = " + 
                         navIF_.triggerTime.ToString() + "  DelT= " + timeFromTrigger.ElapsedMilliseconds.ToString());
                     PhotoCenterCorrelationFile.WriteLine(navIF_.triggerTime.ToString() + "  " + photoCenterName + "  " + imageFilenameWithPath);
                     timeFromTrigger.Reset();
-                    camera.resetImageReady();
+                    camera.resetImageReady();  //reset the camera.ImageReady bool
                     totalImagesLoggedByCamera++;
                 }
             }
@@ -273,10 +327,18 @@ namespace Waldo_FCS
             panelMessage.Left = 0;
             panelMessage.Width = this.Width;
 
+            btnBack.FlatAppearance.BorderSize = 0;
+            btnBack.FlatStyle = FlatStyle.Flat;
+            btnBack.BackColor = Color.Black;
+            btnBack.ForeColor = Color.White;
             btnBack.Height = panelMessage.Height;
             btnBack.Top = 0;
             btnBack.Left = 0;
 
+            btnOK.FlatAppearance.BorderSize = 0;
+            btnOK.FlatStyle = FlatStyle.Flat;
+            btnOK.BackColor = Color.Black;
+            btnOK.ForeColor = Color.White;
             btnOK.Height = panelMessage.Height;
             btnOK.Top = 0;
             btnOK.Left = panelMessage.Width - btnOK.Width;
@@ -289,10 +351,12 @@ namespace Waldo_FCS
             labelVEL.Left = 0;
             labelXTR.Left = 0;
 
+             
             panelLeftText.Top = 0;
             panelLeftText.Left = 0;
+            panelLeftText.Height = steeringBarHeightPix;
             panelRightText.Width = panelLeftText.Width;
-            panelRightText.Height = panelLeftText.Height;
+            panelRightText.Height = steeringBarHeightPix;
             panelLeftText.Visible = false;
             panelRightText.Visible = false;
 
@@ -303,20 +367,6 @@ namespace Waldo_FCS
 
             //fixes font scaling issues on other computers
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-
-            //load the Project Map from the flight maps folder -- prepared with the mission planner
-            String MissionMapPNG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
-            String MissionMapJPG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".jpg";
-
-            if (File.Exists(MissionMapPNG))
-                img = Image.FromFile(MissionMapPNG); //get an image object from the stored file
-            else if (File.Exists(MissionMapJPG))
-                img = Image.FromFile(MissionMapJPG); //get an image object from the stored file
-            else
-                MessageBox.Show(" there is no mission map:  \n" + MissionMapJPG);
-
-            bm1 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            Graphics g = Graphics.FromImage(bm1);  //create a graphics object from the base map image
 
             this.lblMissionNumber.Text = "Mission Number: " + missionNumber.ToString();
             this.lblMissionNumber.Left = this.Width / 2 - lblMissionNumber.Width / 2;
@@ -329,9 +379,30 @@ namespace Waldo_FCS
             labelSatsLocked.Visible = false;
             labelNumImages.Visible = false;
 
-            utm = new UTM2Geodetic();
+            utm = new UTM2Geodetic();  //utm to geodetic conversion class
 
-            //this.BackgroundImage = img;
+            //load the Project Map from the flight maps folder -- prepared with the mission planner
+            String MissionMapPNG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".png";
+            String MissionMapJPG = FlightPlanFolder + ps.ProjectName + @"_Background\Background_" + missionNumber.ToString("D2") + ".jpg";
+
+            //the mission maps may be in either PNG or JPG -- based on the implementation of the mission planner
+            if (File.Exists(MissionMapPNG))
+                img = Image.FromFile(MissionMapPNG); //get an image object from the stored file
+            else if (File.Exists(MissionMapJPG))
+                img = Image.FromFile(MissionMapJPG); //get an image object from the stored file
+            else
+            {
+                MessageBox.Show(" there is no mission map present:  \n" + MissionMapJPG, "ERROR", MessageBoxButtons.OKCancel);
+                Application.Exit();
+            }
+
+            //declare bitmap using the img width and height as the size specifications
+            bm1 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            // graphics object lets us place graphics into the bitmap
+            Graphics g = Graphics.FromImage(bm1);  //create a graphics object from the base map image
+
+            //initialize the base bitmp with the mission map
             g.DrawImage(img, 0, 0);     //img is the mission background image defined above
 
             //draw all the flightlines onto bm1 --- dont need to do this but once every time the mission is changed
@@ -344,6 +415,7 @@ namespace Waldo_FCS
 
             //get the flight line spacing if there is more than one flightline
             //this assumes a constant flight line spacing and that the flight lines are parallel
+            //TODO: the flight line spacing should be in the mission plan -- assume parallel flight lines in UTM
             if (ps.msnSum[missionNumber].numberOfFlightlines > 1)
             {
                 double lon1 = ps.msnSum[missionNumber].FlightLinesCurrentPlan[0].start.X;
@@ -359,7 +431,9 @@ namespace Waldo_FCS
             }
 
             //NOTE: all bitmaps sized to the mapWidth & mapHeight -- stretched to fit screen in Paint
+            //bm2 will contain the base map plus the extended blue current flightline
             bm2 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            //bm3 will contain the crumb trail, current aircraft location, and photocenters
             bm3 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
             //initially set the bm2 and bm3 images to bm1
@@ -371,9 +445,10 @@ namespace Waldo_FCS
             g2.Dispose();
             g3.Dispose();
 
+            //computes total images from the flight plan 
             totalImagesThisMission =  getTotalImagesThisMission();
 
-            Refresh();
+            Refresh();  //call Paint to draw the initial mission form
 
             elapsedTime.Start();  //start the elapsed timer for the message bar display
         }
@@ -440,39 +515,57 @@ namespace Waldo_FCS
             /////////////////////////////////////////////////////////////////////////////////////
             // the bitmap bm3 is prepared elsewhere so that there is minimal screen flicker
             /////////////////////////////////////////////////////////////////////////////////////
-            e.Graphics.DrawImage(bm3, 0, 0, this.Width, this.Height);
+            try
+            {
+                e.Graphics.DrawImage(bm3, 0, 0, this.Width, this.Height);
+            }
+            catch
+            {
+                debugFile.WriteLine(" exception in DrawImage(bm3) "); debugFile.Flush(); 
+            }
         }
 
         private void prepBitmapForPaint()
         {
             //////////////////////////////////////////////////////////////////////////////////////////////////////
             //here we prepare the various stages of the displayed bitmap.
-            //bm1 is the base layer that does not change unless the mission is changed (prepared in Form Load)
-            //bm2 has the semi-infinite flight line to designate the current flight line
-            //bm3 adds the current position and the trigger points and becomes the final displayed bitmap
+            //bm1 is the base layer that does not change unless the mission is changed (prepared in Form_Load)
+            //bm2 adds the semi-infinite flight line to designate the current flight line
+            //bm3 adds the current aircraft position and the trigger points and becomes the final displayed bitmap
+            //prepaing these displays in stages using prior-computed buffers prevents screen flicker
             ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            if (currentFlightLineChanged)   //this code done with every flight line change
+            //redraw the semi-infinite blue line onto the background only when flightline is changed
+            if (currentFlightLineChanged)   //this code done with every flight line change to update the blue line
             {
-                Graphics g = Graphics.FromImage(bm2);
-                g.DrawImage(bm1, 0, 0);   //start this with a fresh copy of the base map
+                Graphics g = Graphics.FromImage(bm2);  //bm2 has been declared but contains no graphics
+                g.DrawImage(bm1, 0, 0);   //start bm2 graphics with a fresh copy of the base map
 
                 //draw the semi-infinite blue "current line" being flown -- make it run three line-lengths before and after the line
                 float penWidth = 2;
 
-                //end will be at the north -- stop this at the steering bar region if the lines are north-south
-                //semiInfiniteFlightLineEndPix.Y = (int)(panelLeftText.Height/mapScaleFactor);
+                //the following terminates the semi-infinite line at the steering bar
+                PointD FLUnitPix = new PointD(0.0, 0.0);
+                double delX = semiInfiniteFlightLineStartPix.X - semiInfiniteFlightLineEndPix.X;
+                double delY = semiInfiniteFlightLineStartPix.Y - semiInfiniteFlightLineEndPix.Y;
+                double FLLengthPix = Math.Sqrt(delX * delX + delY * delY);
+                FLUnitPix.X = delX / FLLengthPix;
+                FLUnitPix.Y = delY / FLLengthPix;
+                //why mapScaleFactor?  -- maps always 640 X 480 per mission planner -- scaled to get a bigger screen 
+                double L = (steeringBarHeightPix / mapScaleFactor - semiInfiniteFlightLineStartPix.Y) / FLUnitPix.Y;
+                semiInfiniteFlightLineEndPix.X = semiInfiniteFlightLineStartPix.X + (int)(L * FLUnitPix.X);
+                semiInfiniteFlightLineEndPix.Y = semiInfiniteFlightLineStartPix.Y + (int)(L * FLUnitPix.Y);
 
                 g.DrawLine(new Pen(Color.Blue, penWidth), semiInfiniteFlightLineStartPix, semiInfiniteFlightLineEndPix);
                 g.Dispose();
                 currentFlightLineChanged = false;
             }
 
-            //this is the part that will change frequently
+            //this is the part that will change frequently do to GPS PosVel changes
             if (realTimeInitiated)  //this occurs after the OK button is clicked on the mission form
             {
-                Graphics g = Graphics.FromImage(bm3);
-                g.DrawImage(bm2, 0, 0);
+                Graphics g = Graphics.FromImage(bm3);  //bm3 exists globally and becomes the final displayed bitmap
+                g.DrawImage(bm2, 0, 0);  //start bm3 with the last bm2 bitmap
 
                 //draw the real-time location of the platform
                 Point pt = GeoToPix(platFormPosVel.GeodeticPos);
@@ -481,8 +574,6 @@ namespace Waldo_FCS
                 g.DrawEllipse(new Pen(Color.Black, 1), pt.X-3, pt.Y-3, 6, 6);
 
                 //crumb trail graphic -- could use a .net queue object for this.
-
-
                 if (missionTimerTicks % crumbTrailThinningFactor == 0)
                 {
                     if (!firstGPSPositionAvailable)
@@ -500,23 +591,30 @@ namespace Waldo_FCS
 
                 g.DrawLines(new Pen(Color.Black, 3), crumbTrail);  //draw the crumb trail points
 
-                //plot the photocenter trigger points for this flight line.
-                for (int i=0; i<numPicsThisFL; i++)
-                    g.DrawEllipse(new Pen(Color.Red, 2), triggerPoints[i].X-5, triggerPoints[i].Y-5, 10, 10);
 
-
-                //this should be done once per flight line
+                //this is done once per flight line
                 if (currentFlightlineIsOpen)  //redraw the flight line -- with a bolder line width to designate the "capture event"
                 {
                     int penWidth = 4;
-                    g.DrawLine(new Pen(Color.Blue, penWidth), FlightLineStartPix, FlightLineEndPix);
+                    g.DrawLine(new Pen(Color.Blue, penWidth), FlightLineStartPix, FlightLineEndPix); //put in bm2 above??
+
+                    //plot the photocenter trigger points for this flight line.
+                    for (int i = 0; i < numPicsThisFL; i++)
+                        g.DrawEllipse(new Pen(Color.Red, 1), triggerPoints[i].X - 4, triggerPoints[i].Y - 4, 8, 8);
                 }
 
                 //draw the steering error icon at the top of the display
-                drawStickPlane(ref g, signedError, iXTR);
+                try
+                {
+                    drawStickPlane(ref g, signedError, iXTR);
+                }
+                catch
+                {
+                    debugFile.WriteLine(" exception in drawing stick plane \n");
+                }
 
                 g.Dispose();
-            }
+            } //end of the fast update part of the display prep
         }
 
         private Point GeoToPix(PointD LonLat)
@@ -538,7 +636,7 @@ namespace Waldo_FCS
         private void btnOK_Click(object sender, EventArgs e)
         {
 
-            panelMessage.Visible = false;
+            panelMessage.Visible = true;
             panelLeftText.Visible = true;
             panelRightText.Visible = true;
 
@@ -572,6 +670,9 @@ namespace Waldo_FCS
 
             g.Dispose();
 
+            /*
+            ////////////////////////////////////////////////////////////////////////////////
+            //redundant with code in the Form_Load  ???? 
             bm2 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             bm3 = new Bitmap(img.Width, img.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
@@ -584,6 +685,9 @@ namespace Waldo_FCS
             g2.Dispose();
             g3.Dispose();
             Refresh();
+            //end of redundant code ?????
+            //////////////////////////////////////////////////////////////////////////////////////
+             * */
 
             labelALT.Visible = true; 
             labelXTR.Visible = true; 
@@ -725,8 +829,12 @@ namespace Waldo_FCS
                 Thread.Sleep(100);
 
                 //this is used only for the simulation -- note 3X real-time
-                deltaT = 3.0 * ( stepTimer.ElapsedMilliseconds / 1000.0 );
+                //why inside this loop?
+                deltaT = realTimeMultiplier * (stepTimer.ElapsedMilliseconds / 1000.0);
             }
+
+            this.Close();
+            //Application.Exit();
         }
 
         ////////////////////////////////////////////////
@@ -734,11 +842,11 @@ namespace Waldo_FCS
         ////////////////////////////////////////////////
         private void realTimeAction()
         {
-            if (realTimeInitiated && showMessage.IsRunning && showMessage.ElapsedMilliseconds > 2000)
-            {
-                panelMessage.Visible = false;
-                showMessage.Reset();
-            }
+            //if (realTimeInitiated && showMessage.IsRunning && showMessage.ElapsedMilliseconds > 2000)
+            //{
+            //    panelMessage.Visible = false;
+            //    showMessage.Reset();
+            //}
 
             if (hardwareAttached)
             {
@@ -751,7 +859,6 @@ namespace Waldo_FCS
                 {
                     kmlPositionWriter.writePositionRec(platFormPosVel);
                 }
-
             }
 
             missionTimerTicks++;
@@ -761,15 +868,38 @@ namespace Waldo_FCS
                 labelPilotMessage.Visible = false;
 
                 //compute platform/FL geometry and triggerRequested event 
-                prepMissionDisplay();
+                try
+                {
+                    prepMissionDisplay();
+                }
+                catch
+                {
+                    debugFile.WriteLine(" esception in prepMissionDisplay() "); debugFile.Flush();
+                    return;
+                }
 
                 //prepare the various portions of the bitmap graphicsdisplay
-                prepBitmapForPaint();
+                try
+                {
+                    prepBitmapForPaint();
+                }
+                catch
+                {
+                    debugFile.WriteLine(" exception in prepBitmapForPaint() "); debugFile.Flush();
+                    return;
+                }
 
                 //repaint the screen ...
                 this.Refresh();  //calls the Paint event
 
-                Application.DoEvents();  //acts on any pressed buttons
+                try
+                {
+                    Application.DoEvents();  //acts on any pressed buttons
+                }
+                catch
+                {
+                    MessageBox.Show(" cant do events");
+                }
 
                 //triggerReQuested set in prepMissionDisplay -- below code gets the camera response to the trigger
                 //this established the camera file name for correlation with the photocenter
@@ -780,7 +910,15 @@ namespace Waldo_FCS
                     triggerReQuested = false;
                 }
 
-                Application.DoEvents();
+                try
+                {
+                    Application.DoEvents();
+                }
+                catch
+                {
+                    MessageBox.Show(" cant do events");
+                }
+
                 //Thread.Sleep(100);  // this is doine in the prior "real-time loop"
 
                 //prepare the info for the steering bar
@@ -808,9 +946,14 @@ namespace Waldo_FCS
                 labelNumImages.Visible = true;
 
                 labelElapsedTime.Text = "Elapsed Time= " + (elapsedTime.ElapsedMilliseconds / 1000.0).ToString("F0");
+
+                PowerStatus power = SystemInformation.PowerStatus;
+
                 if (navIF_ != null)
-                    labelSatsLocked.Text = "Sats= " + navIF_.posVel_.numSV.ToString();
-                else labelSatsLocked.Text = "Sats= 0";
+                {
+                    labelSatsLocked.Text = "Sats= " + navIF_.posVel_.numSV.ToString() + "  Batt: " + (power.BatteryLifePercent * 100).ToString("F0") + "%";
+                }
+                else labelSatsLocked.Text = "Sats= 0" + "  Batt: " + (power.BatteryLifePercent * 100).ToString("F0") + "%";
 
                 labelNumImages.Text = "Images= " + totalImagesCommanded.ToString() + 
                     "/" + totalImagesTriggerReceived.ToString() + "/" + totalImagesLoggedByCamera.ToString() + "/" + totalImagesThisMission.ToString();
@@ -845,38 +988,100 @@ namespace Waldo_FCS
                 platFormPosVel.GeodeticPos.X = navIF_.posVel_.position.lon;
                 platFormPosVel.GeodeticPos.Y = navIF_.posVel_.position.lat;
                 platFormPosVel.altitude = navIF_.posVel_.position.height;
-                platFormPosVel.velN = navIF_.posVel_.velocity.velN;
-                platFormPosVel.velE = navIF_.posVel_.velocity.velE;
-                platFormPosVel.velD = navIF_.posVel_.velocity.velU;
+                platFormPosVel.velN =  navIF_.posVel_.velocity.velN;
+                platFormPosVel.velE =  navIF_.posVel_.velocity.velE;
+                platFormPosVel.velD = -navIF_.posVel_.velocity.velU;
                 speed = Math.Sqrt(platFormPosVel.velN * platFormPosVel.velN + platFormPosVel.velE * platFormPosVel.velE);
+            }
 
-                //todo:  Really need a CRC for the mbed GPS rec
+            
+            if (hardwareAttached)  //this can occur in simulation mode
+            {
+                //todo:  Really need a CRC for the mbed GPS recPOSVEL data
+                //compare current velocity with differenced position
+                //better way to discard bad 
                 ////////////////////////////////vet the GPS-based position and velocity//////////////////////////////////////////////////
-                if (speed > 200.0 || Math.Abs(navIF_.posVel_.position.lon) > 180.0 || Math.Abs(navIF_.posVel_.position.lat) > 90.0)
+                if (Math.Abs(navIF_.posVel_.position.lon) > 180.0 || Math.Abs(navIF_.posVel_.position.lat) > 90.0)
                 {
-                    debugFile.WriteLine(" bad GPS rec: speed= " + speed.ToString("F1") + " lat= "
+                    debugFile.WriteLine(" bad GPS rec:  lat= "
                         + navIF_.posVel_.position.lat.ToString("F2") + " lon= " + navIF_.posVel_.position.lon.ToString("F2"));
+                    debugFile.Flush();
                     //just skip out of this routine and await the next available valid GPS record 
                     return;
                 }
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                //convert the GPS-derived geodetic position into UTM coordinates -- map diaplay is in UTM (meters)
-                if (UTMDesignation == null) 
-                    utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
-                        ref platFormPosVel.UTMPos.Y, ref platFormPosVel.UTMPos.X, ref UTMDesignation, false);  //compute UTMDesignation
-                else
-                    utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
-                        ref platFormPosVel.UTMPos.Y, ref platFormPosVel.UTMPos.X, ref UTMDesignation, true);  //use a preset UTMDesignation
+                double UTMPosX = 0.0, UTMPosY = 0.0;
+                try
+                {
+                    //convert the GPS-derived geodetic position into UTM coordinates -- map display is in UTM (meters)
+                    if (UTMDesignation == null)
+                        utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
+                            ref UTMPosY, ref UTMPosX, ref UTMDesignation, false);  //compute UTMDesignation
+                    else
+                        utm.LLtoUTM(navIF_.posVel_.position.lat * utm.Deg2Rad, navIF_.posVel_.position.lon * utm.Deg2Rad,
+                            ref UTMPosY, ref UTMPosX, ref UTMDesignation, true);  //use a preset UTMDesignation
+                }
+                catch
+                {
+                    debugFile.WriteLine(" could not convert GPS lat-lon to UTM:   "  + 
+                    navIF_.posVel_.position.lat.ToString("F2") + " lon= " + navIF_.posVel_.position.lon.ToString("F2") );
+                    return;  //just return for the next POSVEL message
+                }
+
+                if (!simulatedMission)
+                {
+                    platFormPosVel.UTMPos.X = UTMPosX;
+                    platFormPosVel.UTMPos.Y = UTMPosY;
+                    platFormPosVel.altitude = navIF_.posVel_.position.height;
+                }
+
+                //test the change in position with the velocity
+                double delPosVelTime = navIF_.posVel_.GPStime - lastPosVelTime;
+                double predX = lastPosVelX + navIF_.posVel_.velocity.velE * delPosVelTime;
+                double predY = lastPosVelY + navIF_.posVel_.velocity.velN * delPosVelTime;
+                double predZ = lastPosVelZ + navIF_.posVel_.velocity.velU * delPosVelTime;
+                double predTolerance = 10.0;
+                if (Math.Abs(UTMPosX - predX) > predTolerance ||
+                    Math.Abs(UTMPosY - predY) > predTolerance ||
+                    Math.Abs(navIF_.posVel_.position.height - predZ) > predTolerance)
+                {
+                    //this PosVel record is not self-consistent
+                    debugFile.WriteLine("time: " + navIF_.posVel_.GPStime.ToString("F3") + " PosPosVel not self consistent: delTime= " + delPosVelTime.ToString("F2") );
+                    debugFile.WriteLine(" CurrentPosition: " + 
+                        UTMPosX.ToString("F1") + "  " +
+                        UTMPosY.ToString("F1") + "  " +
+                        navIF_.posVel_.position.height.ToString("F1") + "  " + "Velocity: " +
+                        navIF_.posVel_.velocity.velE.ToString("F2") + "  " +
+                        navIF_.posVel_.velocity.velN.ToString("F2") + "  " +
+                        navIF_.posVel_.velocity.velU.ToString("F2"));
+                    debugFile.WriteLine("    LastPosition: " +
+                        predX.ToString("F1") + "  " +
+                        predY.ToString("F1") + "  " +
+                        predZ.ToString("F1"));
+                    debugFile.WriteLine("current latlon: "  + navIF_.posVel_.position.lat.ToString("F3") + "  " + navIF_.posVel_.position.lon.ToString("F3") );
+                }
+                lastPosVelTime = navIF_.posVel_.GPStime;
+                lastPosVelX = UTMPosX;
+                lastPosVelY = UTMPosY;
+                lastPosVelZ = navIF_.posVel_.position.height;
             }
 
             //////////////////////////////////////////////////////////////////////////////////
             // Compute the platform dynamic geometry relative to the current flight line 
             /////////////////////////////////////////////////////////////////////////////////
-            FLGeometry.getPlatformToFLGeometry(platFormPosVel);
+            try
+            {
+                FLGeometry.getPlatformToFLGeometry(platFormPosVel);
+            }
+            catch
+            {
+                debugFile.WriteLine(" error in getPlatformToFLGeometry ");
+                return; //just return to get th enext POSVEL message
+            }
 
             //protection for the road test -- skip out if stopped cause the geometry can get screwy
-            if (speed < 3.0) return;
+            if (speed < 3.0) return;  //speed in meters Per Sec
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////
             //test for the flight line capture event -- error tolerance = 100 m
@@ -907,7 +1112,11 @@ namespace Waldo_FCS
                     //we dont properly handle the case where we get off a flight line after starting it
                     numPicsThisFL = 0;
 
-                    triggerPoints = new Point[FLGeometry.numPhotoCenters];  //total number of photoCenters this line
+                    //need to protect this array ... adding 10 is a temporary fix
+                    //we can have more photocenters than described in the mission plan if alt is low
+                    //why not make this a list ??? 
+                    maxAllowablePhotoCentersThisLine = FLGeometry.numPhotoCenters + 10;
+                    triggerPoints = new Point[maxAllowablePhotoCentersThisLine];  //total number of photoCenters this line
 
                     //not sure what this does
                     enableAutoSwitchFlightLine = false;
@@ -928,9 +1137,8 @@ namespace Waldo_FCS
 
                     }
 
-
                     if (currentPhotocenter < 0) currentPhotocenter = 0;
-                    if (currentPhotocenter > (FLGeometry.numPhotoCenters - 1)) currentPhotocenter = FLGeometry.numPhotoCenters - 1;
+                    if (currentPhotocenter > maxAllowablePhotoCentersThisLine - 1) currentPhotocenter = maxAllowablePhotoCentersThisLine - 1;
 
                     debugFile.WriteLine(" flight line capture event -- first photocenter= " + currentPhotocenter.ToString());
                     //
@@ -968,6 +1176,11 @@ namespace Waldo_FCS
                         this.panel1.Visible = false;
 
                         //we are on the line so perform a camera trigger
+                        if (numPicsThisFL >= maxAllowablePhotoCentersThisLine)
+                        {
+                            numPicsThisFL = maxAllowablePhotoCentersThisLine - 1;
+                            debugFile.WriteLine(" requested number of pics this line exceeded the flight plan " + numPicsThisFL.ToString()); 
+                        }
                         triggerPoints[numPicsThisFL] = GeoToPix(platFormPosVel.GeodeticPos);  //fill this so we can graph the camera trigger points on the display
 
                         // photocenters labeled 0 through N-1 for N photocenters
@@ -1035,6 +1248,7 @@ namespace Waldo_FCS
                         semiInfiniteFlightLineEndPix = GeoToPix(FLGeometry.semiInfiniteFLendGeo);
                         FlightLineStartPix = GeoToPix(FLGeometry.FLstartGeo);
                         FlightLineEndPix = GeoToPix(FLGeometry.FLendGeo);
+
 
                     }  //end of actions at the end of a flightline
  
@@ -1194,6 +1408,26 @@ namespace Waldo_FCS
             return pv;
         }
 
+        private void terminateRealTime()
+        {
+
+            realTimeInitiated = false;
+
+            if (hardwareAttached) navIF_.Close(labelPilotMessage, progressBar1, MissionNameWithPath);
+            labelPilotMessage.Visible = false;
+            Application.DoEvents();
+
+            kmlTriggerWriter.Close();
+
+            if (hardwareAttached)
+            {
+                kmlPositionWriter.writeKmlLineClosure();
+                kmlPositionWriter.Close();
+            }
+
+            PhotoCenterCorrelationFile.Close();
+        }
+
         private void btnBack_Click(object sender, EventArgs e)
         {
             ////////////////////////////////////////////////////////////////////////////////////
@@ -1201,38 +1435,11 @@ namespace Waldo_FCS
             //changed to "EXIT" after the "OK" button is Clicked --- 
             ////////////////////////////////////////////////////////////////////////////////////
 
-            //close the simulation rosette steering form
-            if (realTimeInitiated /*&& simulatedMission*/)
-            {
+            //run a messageBox in the background to ensure User meant to click EXIT
+            //prevents inadvertent EXIT click and allows mission to continue while user responds
+            this.backgroundWorker1.RunWorkerAsync();
 
-                realTimeInitiated = false;
-
-                if (hardwareAttached) navIF_.Close(labelPilotMessage, progressBar1, MissionNameWithPath);
-                labelPilotMessage.Visible = false;
-                Application.DoEvents();
-
-                kmlTriggerWriter.Close();
-
-                if (hardwareAttached)
-                {
-                    kmlPositionWriter.writeKmlLineClosure();
-                    kmlPositionWriter.Close();
-                }
-
-                PhotoCenterCorrelationFile.Close();
-
-                //this.timer1.Stop();     //stop the time so the integration is stopped
-
-                //if (simSteer != null)    simSteer.Close();       //close the rosette steering form
-                //if (steeringBar != null) steeringBar.Close();    //close the surrogate steering bar
-
-                this.Close();
-            }
-            else
-            {
-                //close this Mission form and get go to the mission selection form
-                this.Close();
-            }
+            return; 
         }
 
         private void btnLeftArrow_Click(object sender, EventArgs e)
@@ -1240,19 +1447,24 @@ namespace Waldo_FCS
             currentFlightLine--;
             if (currentFlightLine < 0) currentFlightLine = 0;
 
+            currentFlightLineChanged = true;
+
             this.lblFlightLine.Text = currentFlightLine.ToString("D2");
             currentFlightlineIsOpen = false; // becomes true when we capture it
             FLGeometry = new CurrentFlightLineGeometry(missionNumber, currentFlightLine, ps);  //left arrow
-             semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
+            semiInfiniteFlightLineStartPix = GeoToPix(FLGeometry.semiInfiniteFLstartGeo);
             semiInfiniteFlightLineEndPix = GeoToPix(FLGeometry.semiInfiniteFLendGeo);
             FlightLineStartPix = GeoToPix(FLGeometry.FLstartGeo);
             FlightLineEndPix = GeoToPix(FLGeometry.FLendGeo);
+
         }
 
         private void btnRightArrow_Click(object sender, EventArgs e)
         {
             currentFlightLine++;
             if (currentFlightLine == ps.msnSum[missionNumber].numberOfFlightlines) currentFlightLine--;
+
+            currentFlightLineChanged = true;
 
             this.lblFlightLine.Text = currentFlightLine.ToString("D2");
             currentFlightlineIsOpen = false; // becomes true when we capture it
@@ -1261,16 +1473,45 @@ namespace Waldo_FCS
             semiInfiniteFlightLineEndPix = GeoToPix(FLGeometry.semiInfiniteFLendGeo);
             FlightLineStartPix = GeoToPix(FLGeometry.FLstartGeo);
             FlightLineEndPix = GeoToPix(FLGeometry.FLendGeo);
+
         }
 
         private void Mission_MouseClick(object sender, MouseEventArgs e)
         {
-            panelMessage.Visible = true;
-            showMessage.Start();
+            //panelMessage.Visible = true;
+            //showMessage.Start();
         }
 
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //the response to the question must be in a thread else the program will wait for the response and halt the real-time
+            TerminateMissionOnEXITclicked = false;
+            DialogResult res = MessageBox.Show("Terminate the mission? \nClick NO to continue.", "Terminating ...", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+            if (res == DialogResult.Yes)
+            {
+                debugFile.WriteLine(" EXIT button clicked"); debugFile.Flush();
+                TerminateMissionOnEXITclicked = true;
+            }
+            else
+            {
+                debugFile.WriteLine(" EXIT button clicked but operator override and mission continued"); debugFile.Flush();
+            }
 
+        }
 
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //close this Mission form and get go to the mission selection form
+            if (TerminateMissionOnEXITclicked)
+            {
+                if (realTimeInitiated) terminateRealTime();
+                //this.Close();
+            }
+            else
+            {
+                //do nothing and continue with the mission
+            }
+        }
 
     }
 }

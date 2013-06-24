@@ -13,9 +13,9 @@ namespace Waldo_FCS
 
         public kmlWriter(String kmlFilename, String _projectName, String InfoType)
         {
-            //////////////////////////////////////////////////////////////////////////////////////
-            //infoType = TRIGGERS, POSITION
-            //////////////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////////////////////////////////////
+            //infoType = TRIGGERS (info at trigger ebent), POSITION (aircraft position at regular intervals)
+            ////////////////////////////////////////////////////////////////////////////////////////////////////
 
             projectName = _projectName;
 
@@ -41,8 +41,8 @@ namespace Waldo_FCS
             String photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" + (offset + currentPhotocenter).ToString("D3");
 
             FlyKmlFile.WriteLine(String.Format("<Placemark> <name>" + photoCenterName +
-                " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2}</coordinates> </Point> </Placemark>",
-                    platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, 0));
+                " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2:#####.00}</coordinates> </Point> </Placemark>",
+                    platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, platFormPosVel.altitude));
 
         }
 
@@ -53,10 +53,15 @@ namespace Waldo_FCS
                 @"</name>  <styleUrl>#redLine</styleUrl> <LineString> <tessellate>1</tessellate> <coordinates>";
             FlyKmlFile.WriteLine(msg);
         }
+
         public void writePositionRec(PosVel platFormPosVel)
         {
-            FlyKmlFile.WriteLine(String.Format("{0:####.000000},{1:###.000000},{2}", platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, 0.0) );
+            //test prevents early data from getting recorded.
+            if (Math.Abs(platFormPosVel.GeodeticPos.X) > 0.0001 && Math.Abs(platFormPosVel.GeodeticPos.Y) > 0.0001 )
+                FlyKmlFile.WriteLine(String.Format("{0:####.000000},{1:###.000000},{2:#####.00}", 
+                    platFormPosVel.GeodeticPos.X, platFormPosVel.GeodeticPos.Y, platFormPosVel.altitude ) );
         }
+
         public void writeKmlLineClosure()
         {
             FlyKmlFile.WriteLine(@"</coordinates> </LineString>  </Placemark>");

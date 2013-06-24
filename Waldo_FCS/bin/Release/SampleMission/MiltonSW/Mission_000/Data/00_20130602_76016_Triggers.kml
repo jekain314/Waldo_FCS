@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+xmlns:gx="http://www.google.com/kml/ext/2.2"
+xmlns:kml="http://www.opengis.net/kml/2.2"
+xmlns:atom="http://www.w3.org/2005/Atom">
+<Document> <name>MiltonSW_Triggers</name>
+<Style id="whiteDot"><IconStyle><Icon>
+<href>http://maps.google.com/mapfiles/kml/pal4/icon57.png</href>
+</Icon></IconStyle><LabelStyle> <scale>0</scale></LabelStyle></Style>
+<Placemark> <name>000_02_001 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.069794,30.606788,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_02_002 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.069497,30.609098,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_02_003 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.069341,30.613383,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_02_004 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.069332,30.617807,0</coordinates> </Point> </Placemark>
+<Placemark> <name>000_02_005 </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>-87.069339,30.622108,0</coordinates> </Point> </Placemark>
+</Document></kml> 

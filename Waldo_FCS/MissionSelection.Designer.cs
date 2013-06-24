@@ -28,7 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btnBack = new System.Windows.Forms.Button();
+            this.PPSTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // btnBack
@@ -42,6 +44,11 @@
             this.btnBack.Text = "Back";
             this.btnBack.UseVisualStyleBackColor = true;
             this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
+            // 
+            // PPSTimer
+            // 
+            this.PPSTimer.Interval = 1000;
+            this.PPSTimer.Tick += new System.EventHandler(this.PPSTimer_Tick);
             // 
             // MissionSelection
             // 
@@ -62,5 +69,6 @@
         #endregion
 
         private System.Windows.Forms.Button btnBack;
+        private System.Windows.Forms.Timer PPSTimer;
     }
 }

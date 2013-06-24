@@ -39,16 +39,17 @@
             this.labelTGO = new System.Windows.Forms.Label();
             this.labelALT = new System.Windows.Forms.Label();
             this.panelMessage = new System.Windows.Forms.Panel();
+            this.labelSatsLocked = new System.Windows.Forms.Label();
             this.labelNumImages = new System.Windows.Forms.Label();
             this.labelElapsedTime = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnBack = new System.Windows.Forms.Button();
-            this.labelSatsLocked = new System.Windows.Forms.Label();
             this.panelLeftText = new System.Windows.Forms.Panel();
             this.panelRightText = new System.Windows.Forms.Panel();
-            this.labelXTR = new System.Windows.Forms.Label();
             this.labelVEL = new System.Windows.Forms.Label();
+            this.labelXTR = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.panelMessage.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panelLeftText.SuspendLayout();
@@ -144,11 +145,11 @@
             // 
             this.labelTGO.AutoSize = true;
             this.labelTGO.BackColor = System.Drawing.Color.Transparent;
-            this.labelTGO.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelTGO.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelTGO.ForeColor = System.Drawing.Color.White;
             this.labelTGO.Location = new System.Drawing.Point(3, 7);
             this.labelTGO.Name = "labelTGO";
-            this.labelTGO.Size = new System.Drawing.Size(126, 29);
+            this.labelTGO.Size = new System.Drawing.Size(99, 24);
             this.labelTGO.TabIndex = 9;
             this.labelTGO.Text = "TGO=100";
             this.labelTGO.Visible = false;
@@ -157,11 +158,11 @@
             // 
             this.labelALT.AutoSize = true;
             this.labelALT.BackColor = System.Drawing.Color.Transparent;
-            this.labelALT.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelALT.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelALT.ForeColor = System.Drawing.Color.White;
             this.labelALT.Location = new System.Drawing.Point(3, 36);
             this.labelALT.Name = "labelALT";
-            this.labelALT.Size = new System.Drawing.Size(126, 29);
+            this.labelALT.Size = new System.Drawing.Size(100, 24);
             this.labelALT.TabIndex = 10;
             this.labelALT.Text = "ALT=-999";
             this.labelALT.Visible = false;
@@ -180,11 +181,21 @@
             this.panelMessage.Size = new System.Drawing.Size(758, 52);
             this.panelMessage.TabIndex = 13;
             // 
+            // labelSatsLocked
+            // 
+            this.labelSatsLocked.AutoSize = true;
+            this.labelSatsLocked.ForeColor = System.Drawing.Color.White;
+            this.labelSatsLocked.Location = new System.Drawing.Point(416, 25);
+            this.labelSatsLocked.Name = "labelSatsLocked";
+            this.labelSatsLocked.Size = new System.Drawing.Size(76, 20);
+            this.labelSatsLocked.TabIndex = 5;
+            this.labelSatsLocked.Text = "Sats=10";
+            // 
             // labelNumImages
             // 
             this.labelNumImages.AutoSize = true;
             this.labelNumImages.ForeColor = System.Drawing.Color.White;
-            this.labelNumImages.Location = new System.Drawing.Point(392, 4);
+            this.labelNumImages.Location = new System.Drawing.Point(415, 4);
             this.labelNumImages.Name = "labelNumImages";
             this.labelNumImages.Size = new System.Drawing.Size(118, 20);
             this.labelNumImages.TabIndex = 4;
@@ -193,11 +204,11 @@
             // labelElapsedTime
             // 
             this.labelElapsedTime.AutoSize = true;
-            this.labelElapsedTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelElapsedTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelElapsedTime.ForeColor = System.Drawing.Color.White;
             this.labelElapsedTime.Location = new System.Drawing.Point(137, 10);
             this.labelElapsedTime.Name = "labelElapsedTime";
-            this.labelElapsedTime.Size = new System.Drawing.Size(232, 29);
+            this.labelElapsedTime.Size = new System.Drawing.Size(207, 25);
             this.labelElapsedTime.TabIndex = 3;
             this.labelElapsedTime.Text = "Elapse Time=2123";
             // 
@@ -231,16 +242,6 @@
             this.btnBack.UseVisualStyleBackColor = true;
             this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
             // 
-            // labelSatsLocked
-            // 
-            this.labelSatsLocked.AutoSize = true;
-            this.labelSatsLocked.ForeColor = System.Drawing.Color.White;
-            this.labelSatsLocked.Location = new System.Drawing.Point(392, 25);
-            this.labelSatsLocked.Name = "labelSatsLocked";
-            this.labelSatsLocked.Size = new System.Drawing.Size(76, 20);
-            this.labelSatsLocked.TabIndex = 5;
-            this.labelSatsLocked.Text = "Sats=10";
-            // 
             // panelLeftText
             // 
             this.panelLeftText.BackColor = System.Drawing.Color.Gray;
@@ -262,25 +263,30 @@
             this.panelRightText.Size = new System.Drawing.Size(125, 70);
             this.panelRightText.TabIndex = 15;
             // 
-            // labelXTR
-            // 
-            this.labelXTR.AutoSize = true;
-            this.labelXTR.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelXTR.Location = new System.Drawing.Point(3, 3);
-            this.labelXTR.Name = "labelXTR";
-            this.labelXTR.Size = new System.Drawing.Size(109, 29);
-            this.labelXTR.TabIndex = 13;
-            this.labelXTR.Text = "XTR=99";
-            // 
             // labelVEL
             // 
             this.labelVEL.AutoSize = true;
-            this.labelVEL.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelVEL.Location = new System.Drawing.Point(5, 36);
+            this.labelVEL.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelVEL.Location = new System.Drawing.Point(3, 36);
             this.labelVEL.Name = "labelVEL";
-            this.labelVEL.Size = new System.Drawing.Size(117, 29);
+            this.labelVEL.Size = new System.Drawing.Size(94, 24);
             this.labelVEL.TabIndex = 14;
             this.labelVEL.Text = "VEL=100";
+            // 
+            // labelXTR
+            // 
+            this.labelXTR.AutoSize = true;
+            this.labelXTR.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelXTR.Location = new System.Drawing.Point(3, 7);
+            this.labelXTR.Name = "labelXTR";
+            this.labelXTR.Size = new System.Drawing.Size(86, 24);
+            this.labelXTR.TabIndex = 13;
+            this.labelXTR.Text = "XTR=99";
+            // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // Mission
             // 
@@ -340,5 +346,6 @@
         private System.Windows.Forms.Panel panelRightText;
         private System.Windows.Forms.Label labelVEL;
         private System.Windows.Forms.Label labelXTR;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }

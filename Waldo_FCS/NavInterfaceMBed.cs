@@ -90,16 +90,32 @@ namespace Waldo_FCS
         public int maxBytesInBuff;
         public int totalBytesWrittenByMbed;
 
-        public NavInterfaceMBed()
+        String MissionDateStringName;
+
+        public NavInterfaceMBed(String MissionDateStringNameIn)
         {
 
+
+            MissionDateStringName = MissionDateStringNameIn;
+
             //initialize some variables and opens a debug file
-            InitMBed();
+            InitMBed(MissionDateStringName);
 
             //get a list of comports that include "Port" && "mbed" && "COM" 
-            List<String> comStr = FindComPorts();
+
+
+            List<String> comStr = new List<string>();
+            try
+            {
+                comStr = FindComPorts();
+            }
+            catch
+            {
+                LogData(" exception in FindComPorts ");
+            }
 
             LogData(" found " + comStr.Count + " serial port(s)");
+
             foreach (String cp in comStr)
             {
                 LogData(" found comPort " + cp);
@@ -164,7 +180,7 @@ namespace Waldo_FCS
             }
         }
 
-        public void InitMBed()
+        public void InitMBed(String dateTimeString)
         {
 	        serialPort_ = null;
 	        serialReadThreshold_ = 1;
@@ -180,7 +196,7 @@ namespace Waldo_FCS
 
 	        try  //try to create a log file on the PC
 	        {
-		        twLog_ = File.CreateText("C:\\temp\\navMBed.log");
+		        twLog_ = File.CreateText("C:\\temp\\navMBed_" + dateTimeString +  ".log");
                 LogData("This file contains message traffic between the mbed and PC");
 	        }
 	        catch  //catch the error is its not created
@@ -207,27 +223,55 @@ namespace Waldo_FCS
 	        ManagementObjectSearcher mgObjs;  
 	        String queryStr;
 
+            LogData(" finding all COM ports ");
+
 	        queryStr = "SELECT * FROM Win32_PNPEntity";  //selection string for the ManagementObjectSearcher
 	        mgObjs = new ManagementObjectSearcher(queryStr);  //perform the ManagementObjectSearcher procedure to get the COM ports
+            LogData(" number of devices attached = " + mgObjs.Get().Count);
 	        foreach (ManagementObject obj in mgObjs.Get())
 	        {
+                bool foundMbedCOM = false;
 		        foreach (PropertyData prop in obj.Properties)
 		        {
-			        if (prop.Name == "Name")
-			        {
-                        String valStr = prop.Value.ToString();  //example of this:  mbed Serial Port (COM15)
-                        if (valStr.Contains("Port") && valStr.Contains("mbed") &&
-							        (valStr.Contains("COM")))  //look specifically for the COM ports
-				        {
-					        int baseIdx = valStr.IndexOf("COM");
-					        int rIdx = valStr.IndexOf(")", baseIdx);
-					        int len = rIdx - baseIdx;
-					        //comPorts.Resize(comPorts, comPorts.Count+1);   //in original C++ code
-					        comPorts.Add( valStr.Substring(baseIdx, len) );  //selects the "15" in COM15
-				        }
+                    try
+                    {
+                        if (prop.Name == "Name")
+                        {
+                            String valStr = " "; ;
+                            try
+                            {
+                                valStr = prop.Value.ToString();
+                            }
+                            catch
+                            {
+                                LogData("could not assign propvalue to string");
+                            }
+                            
+                            LogData("device name  " + valStr);
+                            if (valStr.Contains("Port") && valStr.Contains("mbed") &&
+                                        valStr.Contains("COM"))  //look specifically for the COM ports
+                            {
+                                LogData("found mbed port ");
+                                int baseIdx = valStr.IndexOf("COM");
+                                int rIdx = valStr.IndexOf(")", baseIdx);
+                                int len = rIdx - baseIdx;
+                                //comPorts.Resize(comPorts, comPorts.Count+1);   //in original C++ code
+                                comPorts.Add(valStr.Substring(baseIdx, len));  //selects the "15" in COM15
+                                LogData("found mbed port with port index " + valStr.Substring(baseIdx, len));
+                                foundMbedCOM = true;
+                                break;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        LogData("exception found in port-found loop");
 			        }
 		        }
+                if (foundMbedCOM) break;
 	        }
+
+            LogData(" end of searching fpr COM ports ");
 
            
 
@@ -245,7 +289,8 @@ namespace Waldo_FCS
 
 	        LogData("Test port : " + comID);  //present to the log the progress
 
-	        for (int b = 2; (b <= 2) && (serialPort_ == null); b++)  //just goes through this once??
+            int baudRateMultiplier = 8;
+            for (int b = baudRateMultiplier; (b <= baudRateMultiplier) && (serialPort_ == null); b++)  //just goes through this once??
 	        {
 		        int baudRate = 115200*b;
 		        LogData("Test baudRate : " + baudRate.ToString("0"));  //present to progress to the log

@@ -1,0 +1,32 @@
+Opened Debug session for Project: MiltonSW
+Selected Mission:  0
+FL= 0 tgo= 63.72 numPics= 0 vMag = 51.40 alongFL= -3274.97 toFL= -657.43 VelAlong= 51.40 HdgToFL= 0.00 nextPhotoCenter= 0
+FL= 0 tgo= 63.44 numPics= 0 vMag = 51.40 alongFL= -3255.87 toFL= -656.38 VelAlong= 51.32 HdgToFL= 3.17 nextPhotoCenter= 0
+FL= 0 tgo= 63.34 numPics= 0 vMag = 51.40 alongFL= -3235.80 toFL= -654.14 VelAlong= 51.08 HdgToFL= 6.37 nextPhotoCenter= 0
+FL= 0 tgo= 63.42 numPics= 0 vMag = 51.40 alongFL= -3215.42 toFL= -650.73 VelAlong= 50.70 HdgToFL= 9.48 nextPhotoCenter= 0
+FL= 0 tgo= 63.64 numPics= 0 vMag = 51.40 alongFL= -3196.13 toFL= -646.52 VelAlong= 50.22 HdgToFL= 12.30 nextPhotoCenter= 0
+FL= 0 tgo= 63.99 numPics= 0 vMag = 51.40 alongFL= -3176.92 toFL= -641.38 VelAlong= 49.65 HdgToFL= 14.99 nextPhotoCenter= 0
+FL= 0 tgo= 64.44 numPics= 0 vMag = 51.40 alongFL= -3157.52 toFL= -635.23 VelAlong= 49.00 HdgToFL= 17.58 nextPhotoCenter= 0
+FL= 0 tgo= 64.98 numPics= 0 vMag = 51.40 alongFL= -3138.53 toFL= -628.32 VelAlong= 48.30 HdgToFL= 20.00 nextPhotoCenter= 0
+FL= 0 tgo= 65.58 numPics= 0 vMag = 51.40 alongFL= -3119.98 toFL= -620.74 VelAlong= 47.58 HdgToFL= 22.24 nextPhotoCenter= 0
+FL= 0 tgo= 66.22 numPics= 0 vMag = 51.40 alongFL= -3101.85 toFL= -612.55 VelAlong= 46.84 HdgToFL= 24.31 nextPhotoCenter= 0
+FL= 0 tgo= 66.90 numPics= 0 vMag = 51.40 alongFL= -3083.87 toFL= -603.68 VelAlong= 46.10 HdgToFL= 26.26 nextPhotoCenter= 0
+FL= 0 tgo= 67.62 numPics= 0 vMag = 51.40 alongFL= -3065.51 toFL= -593.87 VelAlong= 45.33 HdgToFL= 28.12 nextPhotoCenter= 0
+FL= 0 tgo= 68.31 numPics= 0 vMag = 51.40 alongFL= -3048.24 toFL= -583.99 VelAlong= 44.62 HdgToFL= 29.75 nextPhotoCenter= 0
+FL= 0 tgo= 68.99 numPics= 0 vMag = 51.40 alongFL= -3031.11 toFL= -573.59 VelAlong= 43.94 HdgToFL= 31.26 nextPhotoCenter= 0
+FL= 0 tgo= 69.64 numPics= 0 vMag = 51.40 alongFL= -3014.10 toFL= -562.69 VelAlong= 43.28 HdgToFL= 32.65 nextPhotoCenter= 0
+FL= 0 tgo= 70.26 numPics= 0 vMag = 51.40 alongFL= -2997.21 toFL= -551.34 VelAlong= 42.66 HdgToFL= 33.91 nextPhotoCenter= 0
+FL= 0 tgo= 70.81 numPics= 0 vMag = 51.40 alongFL= -2980.92 toFL= -539.93 VelAlong= 42.10 HdgToFL= 35.01 nextPhotoCenter= 0
+FL= 0 tgo= 71.29 numPics= 0 vMag = 51.40 alongFL= -2964.70 toFL= -528.14 VelAlong= 41.58 HdgToFL= 36.00 nextPhotoCenter= 0
+FL= 0 tgo= 71.71 numPics= 0 vMag = 51.40 alongFL= -2948.54 toFL= -516.02 VelAlong= 41.12 HdgToFL= 36.87 nextPhotoCenter= 0
+FL= 0 tgo= 72.05 numPics= 0 vMag = 51.40 alongFL= -2932.06 toFL= -503.30 VelAlong= 40.69 HdgToFL= 37.66 nextPhotoCenter= 0
+FL= 0 tgo= 72.29 numPics= 0 vMag = 51.40 alongFL= -2916.56 toFL= -491.08 VelAlong= 40.35 HdgToFL= 38.28 nextPhotoCenter= 0
+FL= 0 tgo= 72.43 numPics= 0 vMag = 51.40 alongFL= -2901.18 toFL= -478.71 VelAlong= 40.05 HdgToFL= 38.81 nextPhotoCenter= 0
+FL= 0 tgo= 72.48 numPics= 0 vMag = 51.40 alongFL= -2885.30 toFL= -465.73 VelAlong= 39.81 HdgToFL= 39.25 nextPhotoCenter= 0
+FL= 0 tgo= 72.43 numPics= 0 vMag = 51.40 alongFL= -2869.38 toFL= -452.57 VelAlong= 39.61 HdgToFL= 39.58 nextPhotoCenter= 0
+FL= 0 tgo= 72.28 numPics= 0 vMag = 51.40 alongFL= -2853.86 toFL= -439.63 VelAlong= 39.48 HdgToFL= 39.81 nextPhotoCenter= 0
+FL= 0 tgo= 72.04 numPics= 0 vMag = 51.40 alongFL= -2838.73 toFL= -426.96 VelAlong= 39.40 HdgToFL= 39.95 nextPhotoCenter= 0
+FL= 0 tgo= 71.70 numPics= 0 vMag = 51.40 alongFL= -2823.25 toFL= -413.97 VelAlong= 39.38 HdgToFL= 40.00 nextPhotoCenter= 0
+FL= 0 tgo= 71.27 numPics= 0 vMag = 51.40 alongFL= -2807.65 toFL= -400.90 VelAlong= 39.40 HdgToFL= 39.96 nextPhotoCenter= 0
+FL= 0 tgo= 70.76 numPics= 0 vMag = 51.40 alongFL= -2792.38 toFL= -388.16 VelAlong= 39.46 HdgToFL= 39.85 nextPhotoCenter= 0
+FL= 0 tgo= 70.18 numPics= 0 vMag = 51.40 alongFL= -2777.19 toFL= -375.56 VelAlong= 39.57 HdgToFL= 39.66 nextPhotoCenter= 0

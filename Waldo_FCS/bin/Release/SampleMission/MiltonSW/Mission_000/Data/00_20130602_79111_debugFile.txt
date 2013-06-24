@@ -1,0 +1,3 @@
+Opened Debug session for Project: MiltonSW
+Selected Mission:  0
+FL= 0 tgo= 63.72 numPics= 0 vMag = 51.40 alongFL= -3274.97 toFL= -657.43 VelAlong= 51.40 HdgToFL= 0.00 nextPhotoCenter= 0
