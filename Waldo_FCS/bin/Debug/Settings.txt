@@ -1,0 +1,12 @@
+///////////////////////////////////////////////////////////
+             Settings File for Waldo_FCS
+///////////////////////////////////////////////////////////
+  Parameter                                 Value
+------------------------------------------------------------
+SaveDataToFolder:                       C://_Waldo_FCS//
+LateralFlightLineTolereance(m)          100
+HeadingFlightLineTolerance(deg)         20
+Camera_fStop                            5.6
+Camera_shutter                          1/2000
+Camera_ISO                              ISO 400
+ 

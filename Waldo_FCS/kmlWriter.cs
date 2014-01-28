@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using mbedNavInterface;
 
 namespace Waldo_FCS
 {
@@ -38,7 +39,11 @@ namespace Waldo_FCS
         public void writePhotoCenterRec(int missionNumber, int currentFlightLine, int offset, int currentPhotocenter, PosVel platFormPosVel)
         {
 
-            String photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" + (offset + currentPhotocenter).ToString("D3");
+            String photoCenterName = "";
+            if (missionNumber >= 0)
+                photoCenterName = missionNumber.ToString("D3") + "_" + currentFlightLine.ToString("D2") + "_" + (offset + currentPhotocenter).ToString("D3");
+            else
+                photoCenterName = currentFlightLine.ToString("D2") + "_" + (offset + currentPhotocenter).ToString("D3");
 
             FlyKmlFile.WriteLine(String.Format("<Placemark> <name>" + photoCenterName +
                 " </name> <styleUrl>#whiteDot</styleUrl> <Point> <coordinates>{0:####.000000},{1:###.000000},{2:#####.00}</coordinates> </Point> </Placemark>",

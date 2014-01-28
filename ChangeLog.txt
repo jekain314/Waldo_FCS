@@ -1,0 +1,80 @@
+Waldo_FCS Change Log
+
+////////////////////////////////////////////
+started 11/11/2013
+////////////////////////////////////////////
+11/11/2013
+1) replaced the document name with "Waldo_FCS Mission Plan" to provide positive ID of a mission plan KML
+
+11/23/2013
+1) added most of the linear feature capability
+
+12/4/2013
+1) fixed the principal axis simulation capability
+2) enabled the priorFlownLines capability
+3) show flown lines on current polygon mission as green
+4) for path mission, show the semi-infinite blue line at the start
+5) enable incrementing the paths in the simulation 
+6) steering bar added 
+7) added a toggle to switch on/off the autosteer and use right-left arroes to steer the plane 
+
+12/28/2013 based on the results of flght test with new off-axis code
+1) change the way we enter the SIM -- user types "SIM" from the keyboard when missionSelection map is displayed
+2) Change TGO computation so that when pilot exits end of line -- time just counts up til 30deg-to-next-line is reached
+3) Allow user heading control while in the SIM -- right-left arrow keys control the heading in 0.1deg increments
+4) allow the mission map to use the zoomed-out (ZO) map if the plane exits the zoomed-in map
+5) show the zoomed-in map bounds on the zoomed out map (Mission selection and ZO mission)
+6) Disable the "OK" button when in the mission display
+7) Disable taking photos when > 30 deg from the line or >100m from line
+8) ONLY increment to the next line when all photocenters have been captured
+      save the captured Photocenter numbers on a line and check to see if they have all been captured
+9) make bottom info display transparent so map shows through
+10) remember the photocenters when a line is interrupted but we return to the line
+
+01/03/2014  updates Per James review
+1) fix error on startup when you have mission plans from old planners
+2) flightline change arrows were not present
+3) properly scale the steering bar to 100m off-the-line 
+4) change the aircraft icon to red when the camera cannot take pictures
+
+01/03/2014   add the C# camera class to replace the old C++ class
+Modify the CamonCamera class to the C# class
+   a)  add in the cameraClass.cs from the canonUtilities tests
+   b)  replace the old canon C++ call with calls to the new cs class
+   c)  modify the camera thread to a backgroundWorker so that it is started when the photo is requested
+   d)  remove all the camera activitires from realTimeAction -- all happens in the background
+   e)  new camera takePicture downloads to the PC
+   f)  save the picture with the correct photocenter
+   g)  when the camera class is closed -- write out download timing stats to the debug file
+01/10/2014
+  1) cut in the new C# class to the Waldo_FCS
+  2) added a backgroundWorker thread that is initiatedfrom the polygonGeometry procedure to begin the trigger process
+  3) The backgroundWorker  sends a command to the mbed to take a picture
+  4) The backgroundWorker then just waits into it receives a signal from the camera class (camera.PhotoInProgress) that the picture download is complete
+  5) we keep track of the PC-commanded photos (X), command-received-at-mbed (Y), and photos received at the PC (Z) to display to the pilot X/Y/Z
+01/12/2014
+  1) added a settings file where we set initiatializations.
+  2) enables setting the camera ISO, fstop, and shutter for the mission
+  3) also allows setting the file where the images are stored (this still needs work)
+  4) modified the logging process so that all logs are now consolidated into a songle log that is placed in the data folder
+  5) get rid of the need for C://temp -- put log files in _Waldo_FCS  -- done 
+
+01/18/2014
+  1) cut in the new mbed interface class that downloads the nav data in real time into an ASCII file
+  2) This was originally developed into an XCAM_Test application (XCAM_Test  uses same mbed and camera classes)
+  3) XCAM_TEST application allows photo commands generated from bulb trigger (mbed) and the EDSDSK software
+  4) Merged nav and logging data now called XX_YYY_ZZZ.log rather than .bin and .itr
+
+TODO:
+ 1) Place photos will go into the data folder into a separate folder called:  XX_YYYY_ZZZZZ
+ 2) do not allow a photo to be over-written on a mission --- latest image has the "correct" name -- rename older images
+         00_01_034 becomes 00_01_034_xxxxxxx where xxxxxxx is the secs of the week mage taken 
+ 3) Improve the initial setup of the serial data link (how can it fail???)  -- but needs more work
+ 4) Generate a .nav file read program to ensure the ASCII nav data is correct
+
+TODO -- less priority
+1) create a sim directory in the data folders
+2) discard useless files to remove clutter -- if no pics are taken discard most files
+3) add an info display to show distance/time to the mission site when in the zoomed out map
+     distance is straight-line distance to intercept with the first flight line
+

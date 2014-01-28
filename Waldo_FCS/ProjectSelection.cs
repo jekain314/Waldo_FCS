@@ -8,59 +8,80 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml;
-using System.ServiceProcess;  //enebles turning on/off services
+using System.ServiceProcess;  //enables turning on/off services
 using System.Management;
-using CanonCameraEDSDK;
+//using CanonCameraEDSDK;
+using CanonSDK;
+using mbedNavInterface;
+using settingsManager;
+using LOGFILE;
 
 namespace Waldo_FCS
 {
     public partial class ProjectSelection : Form
     {
+        #region varables used in this Form class
+
         List<String> ProjectFileNames;
+        List<COVERAGE_TYPE> ProjectCoverageTypes;
 
         /////////////////////////////////////////////////////////////////////////////////////
-        // hardwired FlightFolder location at the top of the C drive
-        //we will look for missions there and will place mission data beneath the mission
-        String FlightFolderLocation = @"C:\_Waldo_FCS\";
+        //default FlightFolder location at the top of the C drive
+        //we will look for missions there and will temporarily place a log file there
+        //these flise may be updated using the settingsManager class
+        String FlightPlanFolder = @"C:\_Waldo_FCS\";
         /////////////////////////////////////////////////////////////////////////////////////
 
-        String FlightPlanFolder;
         String ProjectName;
-        StreamWriter debugFile;
+
+        //used to trigger the simulation mode
         bool hardwareAttached = false;
 
-        NavInterfaceMBed navIF_;
-        CanonCamera camera;
+        SettingsManager initializationSettings;
 
-        int mapWidth = 640;  //map size established by the mission planner
+        NavInterfaceMBed navIF_;
+        SDKHandler canonCamera;
+
+        String MissionDateString;
+
+        LogFile logFile;
+
+        //map sizes fixed by Google maps "Free" API
+        int mapWidth = 640;  //map size established by the mission planner (Google Earth download constraint)
         int mapHeight = 480;
         double screenScaleFactor;
+
+        bool DoPaint = false;
+
+        #endregion
 
         public ProjectSelection()
         {
             InitializeComponent();
-        }
 
-        private void ProjectSelection_Load(object sender, EventArgs e)
-        {
-            ////////////////////////////////////////////////////////////////////////////
-            //first thing we do is to to check for the camera and mbed
-            //  instantiate the NavInterfaceMbed()
-            //  instantiate the CanonCamera()
-            //  check that these devices are present and operational
-            //  print a dialog if they are not
-            //  set up the background worker thread for the camera triggering
-            //  How do we prevent the posvel and trigger requests from conflicting ??? 
-            /////////////////////////////////////////////////////////////////////////////
-
+            checkForAnotherRunningApplication();
 
             //this may be modified if the hardware devices are not attached 
             hardwareAttached = true;
-            this.DoubleBuffered = true;
 
-            //at this point, we have found the camera and the mbed device
-            //the mbed has launched the GPS receiver and it will begin finding satellites
-            //we will wait til we get to the mission screen before 
+            //set various sizes for the form and controls
+            setUpFormGeometry();
+
+            //locate the various files and folders we will use for the Waldo_FCS application
+            checkForAndValidateFilesNeeded();
+
+            //all the selectable Project Plan buttons will be drawn in the Paint method for the form
+            this.Show();
+            //this.Refresh();
+
+            //detect the devices and allow the User to select a Mission
+            detectTheMbedAndCamera();
+        }
+
+        void setUpFormGeometry()
+        {
+            DoPaint = true;
+            this.DoubleBuffered = true;
 
             this.Top = 0;
             this.Left = 0;
@@ -81,16 +102,20 @@ namespace Waldo_FCS
             this.label1.BackColor = Color.Transparent;
 
             labelCopyright.BackColor = Color.Transparent;
-            labelCopyright.ForeColor = Color.White;
+            labelCopyright.ForeColor = Color.Black;
             labelCopyright.Text = "copyright © 2013 All Rights Reserved WaldoAir, Inc";
             labelCopyright.Top = this.Height / 8;
             labelCopyright.Left = this.Width / 2 - labelCopyright.Width / 2;
 
             label1.BackColor = Color.Transparent;
-            label1.ForeColor = Color.White;
-            label1.Text = "Waldo_FCS";
+            label1.ForeColor = Color.Black;
+            label1.Text = "Waldo FCS";
             label1.Top = this.Height / 25;
             label1.Left = this.Width / 2 - label1.Width / 2;
+
+            label2.BackColor = Color.Transparent;
+            //use the value manually established in the designer
+            //label2.Text = @"Version: 11/16/2013";
 
             labelNoNav.BackColor = Color.Transparent;
             labelNoNav.ForeColor = Color.Yellow;
@@ -104,78 +129,189 @@ namespace Waldo_FCS
             button1.Width = this.Width / 10;
             button1.Top = this.Height - (button1.Height + this.Height / 30);
 
+
+
             //background image for the ProjectSelection Screen is set in the designed properties of the form
             //use a nice looking aerial iomage  here 
             //this screen should be in the .exe folder else we will use the one in the properties ... 
-            //this.BackgroundImage = new Bitmap(@"ProjectionSelectionBackgroundImage.jpg");
+            //this.BackgroundImage = new Bitmap(@"ProjectionSelectionBackgroundImage.jpg");        
+        }
+
+        void checkForAndValidateFilesNeeded()
+        {
+
+            //get initialization settings from the Settings.txt file
+            initializationSettings = new SettingsManager();
+
+            //initializationSettings.SaveToFolder is the location of the mission plan folder
+            //this is typically set to C://_Waldo_FCS
+            FlightPlanFolder = initializationSettings.SaveToFolder;
+
+            //set up the logging procedures for the application
+            logFile = new LogFile( ref MissionDateString, initializationSettings);
+
+            logFile.WriteLine("Mission DateString established:  " + MissionDateString);
+
+            //this will be a temporary location for saving the log file
+            //this will be revised later after we select the mssion
+            //FlightLogFolder = initializationSettings.SaveToFolder + "logs//";
 
             String[] ProjectFolders = null;
             ProjectFileNames = new List<String>();
+            ProjectCoverageTypes = new List<COVERAGE_TYPE>();
 
-            if (Directory.Exists(FlightFolderLocation))  //this is the operational route
+            //flight folder location "_Waldo_FS" at top of C drive
+            if (!Directory.Exists(FlightPlanFolder))  
             {
-                //get all the Project .kml Files in the _FlightPlans Folder
-                FlightPlanFolder = FlightFolderLocation;
-                ProjectFolders = Directory.GetFiles(FlightPlanFolder, "*.kml");  //all files ending in .kml
+                DialogResult res = MessageBox.Show("There is no mission plan folder (_Waldo_FCS) at the top of the C drive\n ... Use the default example? ",
+                    "NO Mission Folder", MessageBoxButtons.YesNo);
+                if (res == DialogResult.No)
+                {
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    FlightPlanFolder = Directory.GetCurrentDirectory() + "\\SampleMission\\";
+                    if (Directory.Exists(FlightPlanFolder))
+                    {
+                        MessageBox.Show("There is no sample mission folder ...", "Terminating ...");
+                        Environment.Exit(0);
+                    }
+                }
 
             }
-            else  //there is a sample mission plan in the folder with the exe
+            ////////////////////////////////////////////////////////////////////////////////////
+            //if we get here, we have located the flight plan folder and created a log folder
+            ////////////////////////////////////////////////////////////////////////////////////
+
+
+
+            //get the list of projects in the  FlightPlanFolder
+            ProjectFolders = Directory.GetFiles(FlightPlanFolder, "*.kml");  //all files ending in .kml
+            if (ProjectFolders.Count() == 0)
             {
-                String cd = Directory.GetCurrentDirectory() + "\\SampleMission\\";
-                ProjectFolders = Directory.GetFiles(cd, "*.kml"); ;
-                FlightPlanFolder = cd;
+                MessageBox.Show("There are no Projects in the FlightPlanFolder folder", "Terminating ... ");
+                Environment.Exit(0);
             }
 
+            logFile.WriteLine("");
+            logFile.WriteLine("Opening Project plans");
             foreach (String pth in ProjectFolders)
             {
-                ProjectFileNames.Add(Path.GetFileNameWithoutExtension(pth));
+                //open each of the .kml files to see if they are valid missions plans
+                //and detect either Polygon plans or LinearFeature Plans 
+                String kmlFilename = FlightPlanFolder + Path.GetFileNameWithoutExtension(pth) + ".kml";
+                logFile.WriteLine("Project plan: " + kmlFilename);
+                COVERAGE_TYPE coverageType = COVERAGE_TYPE.notSet;
+                XmlTextReader tr = new XmlTextReader(kmlFilename);  //associate the textReader with input file
+                ProjectKmlReadUtility ps = new ProjectKmlReadUtility(tr, ref coverageType);
+                //we will display only input kml files that are detected to be polygon of linearFeature types
+                if (coverageType != COVERAGE_TYPE.notSet)
+                {
+                    //test for a matching Background folder
+                    String BackgroundMapFolderName = FlightPlanFolder + Path.GetFileNameWithoutExtension(pth) + "_Background\\";
+                    if (!Directory.Exists(BackgroundMapFolderName))
+                    {
+                        MessageBox.Show("Valid plan: " + pth + ", found but no matching Background maps folder\n skip this plan");
+                    }
+                    else
+                    {
+                        int validMaps = 0;
+                        String[] mapFiles = Directory.GetFiles(BackgroundMapFolderName, "*.png");  //all files ending in .kml
+                        foreach (String st in mapFiles)
+                        {
+                            String ss = Path.GetFileNameWithoutExtension(st);
+                            if (ss == "ProjectMap" || ss == "Background_00")
+                            {
+                                validMaps++;
+                            }
+                        }
+                        if (validMaps < 2)
+                        {
+                            MessageBox.Show(pth + ": maps not correct in Background Folder\n skip this plan");
+                            break;
+                        }
+
+                        //have found a valid mission plan with matching Background maps.
+                        ProjectFileNames.Add(Path.GetFileNameWithoutExtension(pth));
+                        ProjectCoverageTypes.Add(coverageType);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(pth + ":  Invalid mission plan\n id you use latest KML_Reader?\n skip this plan");
+                }
             }
+            //test for no valid mission plans
+            if (ProjectFileNames.Count == 0)
+            {
+                MessageBox.Show("There are no valid Polygon or LinearFeature projects \nDid you use a valid mission planner?");
+                Environment.Exit(0);
+            }
+            logFile.WriteLine("Completed opening project plans");
+            logFile.WriteLine("");
 
-            String MissionDateStringName = 
-             DateTime.UtcNow.Year.ToString("D4") +
-             DateTime.UtcNow.Month.ToString("D2") +
-             DateTime.UtcNow.Day.ToString("D2") + "_" +
-             (3600 * DateTime.UtcNow.Hour + 60 * DateTime.UtcNow.Minute + DateTime.UtcNow.Second).ToString("D5");
+        }
 
-            //all the selectable buttons will be drawn in the Paint method for the form
-            this.Refresh();
+        void checkForAnotherRunningApplication()
+        {
+            //test for another Waldo_FCS running process ....
+            //get current process name -- test for other running processes by same name.
+            String processName = System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location);
+            if (System.Diagnostics.Process.GetProcessesByName(processName).Count() > 1)
+            {
+                MessageBox.Show(" Another Waldo_FCS application is running\n Terminate that application and restart", "Terminating ...");
+                Environment.Exit(0);
+            }
+        }
 
+        void detectTheMbedAndCamera()
+        {
             try  //call the Nav interface constructor
             {
-                //this.statusStrip1.Text = " call NavInterfaceMbed constructor";
-                navIF_ = new NavInterfaceMBed(MissionDateStringName);  //managed object constructor
+                logFile.WriteLine("Checking for mbed microcontroller device");
+                navIF_ = new NavInterfaceMBed(logFile, initializationSettings);  //managed object constructor
             }
             catch  //catch the error if the initialization has failed
             {
+                logFile.WriteLine("Mbed serial device not found");
                 var result = MessageBox.Show("found no attached mbed device \nContinue in Simulation mode?", "Warning!!",
                             MessageBoxButtons.YesNo);
-                if (result == DialogResult.No) { Application.Exit(); return; }
+                if (result == DialogResult.No) 
+                { 
+                    Environment.Exit(0);  
+                }
                 else
                 {
-                    hardwareAttached = false;   
+                    hardwareAttached = false;
+                    logFile.WriteLine("User selected to continue in simulation mode");
                 }
             }
 
-            //only try to open the camera if we have succssfully attached the mbed device
+            logFile.WriteLine("");
+
+            //only try to open the camera if we have successfully attached the mbed device
+            //is there any reason to use the camera separately attached?
             if (hardwareAttached)
             {
                 try
                 {
-                    camera = new CanonCamera();
+                    //camera = new CanonCamera();
+                    logFile.WriteLine("Checking for Canon camera device");
+                    canonCamera = new SDKHandler(logFile, initializationSettings);
                 }
                 catch
                 {
-                    MessageBox.Show(" mbed found but no camera found -- exiting ");
+                    MessageBox.Show("Mbed device found but no camera found -- exiting ");
                     Application.Exit();
                 }
             }
-
         }
 
-        private void P_Click(object sender, EventArgs e)
+        private void projectButton_Click(object sender, EventArgs e)
         {
             //////////////////////////////////////////////////////////////////////////////////////////
-            //this action is done upon clicking a project from the project buttons
+            //this action is done upon clicking a project name from the project buttons
             //we will then prepare the the Mission Selection Form
             // NOTE: projects can be large and may include multiple missions (indivdual flights)
             //////////////////////////////////////////////////////////////////////////////////////////
@@ -184,12 +320,33 @@ namespace Waldo_FCS
             ProjectName = b.Text;  //this is the project name for the selected Project
 
             // Read in the kml ProjectSummary for the complete Project
-            ProjectKmlReadUtility ps = new ProjectKmlReadUtility(FlightPlanFolder, ProjectName);
-            ProjectSummary  projSum = ps.GetProjectSummary();
+            COVERAGE_TYPE coverageTypeFromKML = COVERAGE_TYPE.notSet;
 
-            //open a file debug file;
+            //the kml file name with complete path is formed as below ... 
+            String kmlFilename = FlightPlanFolder + ProjectName + ".kml";
+            //access the kml via the xml reader
+            XmlTextReader tr = new XmlTextReader(kmlFilename);  //associate the textReader with input file
 
-            ////  analyze the pre-flown missions to assess flightline status
+            //initialize the kml input read process .. opens the xml reader and gets the coverage type. 
+            ProjectKmlReadUtility ps = new ProjectKmlReadUtility(tr, ref coverageTypeFromKML);
+
+            //finish the reading of the input kml and generate the Mission selection form  
+            Form missionSelectionForm = null;
+            if (coverageTypeFromKML == COVERAGE_TYPE.polygon)
+            {
+
+                ProjectSummary projSum = ps.readPolygonCoverageData(tr, ProjectName);
+                missionSelectionForm = new MissionSelection(projSum, FlightPlanFolder, logFile, navIF_,
+                        canonCamera, hardwareAttached, initializationSettings, MissionDateString);
+            }
+            else if (coverageTypeFromKML == COVERAGE_TYPE.linearFeature)
+            {
+                linearFeatureCoverageSummary LFSum = ps.readLinearFeatureCoverageData(tr, ProjectName);
+                LFSum.ProjectName = ProjectName;
+                missionSelectionForm = new MissionSelection(LFSum, FlightPlanFolder, logFile, navIF_,
+                    canonCamera, hardwareAttached, initializationSettings, MissionDateString);
+            }
+
             // TODO:   complete the preflown mission analysis 
             //PriorFlownMissions pfm = new PriorFlownMissions(FlightPlanFolder, projSum);
             //ProjectUpdateFlightLines updateFlightLines =  pfm.getProjectUpdateFlightLines();
@@ -197,15 +354,6 @@ namespace Waldo_FCS
             //project selection is complete -- show the mission selection form
             //this displays a new form where we will select the individual mission from within a project
             //the mbed and camera objects have been opened here but are passed as arguments ...
-            Form missionSelectionForm = null;
-            try
-            {
-                missionSelectionForm = new MissionSelection(projSum, FlightPlanFolder, navIF_, camera, hardwareAttached);
-            }
-            catch
-            {
-                int a = 1;
-            }
             missionSelectionForm.Show();
         }
 
@@ -215,14 +363,19 @@ namespace Waldo_FCS
             //MessageBox.Show(" this will terminate Waldo_FCS","Exiting ...",MessageBoxButtons.OKCancel);
             //this will bomb if there were no [project folders
             //debugFile.WriteLine(" normal terminating from Project selection screen "); 
-   
-            Application.Exit();
+
+            Environment.Exit(0);
         }
 
         private void ProjectSelection_Paint(object sender, PaintEventArgs e)
         {
+            ////////////////////////////////////////////////////////////////////////
             ///   why do we do this in Paint???
-            //put this code in the Paint event to get the eventHander to fire
+            //    put this code in the Paint event to get the eventHander to fire
+            ////////////////////////////////////////////////////////////////////////
+
+            if (!DoPaint) return;
+
             int FW = this.Width;   //total form width
 
             int W = (int)(screenScaleFactor * 180);    //width of a clickable button
@@ -234,35 +387,59 @@ namespace Waldo_FCS
             //make a set of clickable buttons buttons in three columns
             //max rows = 4 so there can be as many as 12 Selectable Projects
             List<Button> ProjectButtons = new List<Button>();
-            int row = 0; int col = 0;
-            foreach (String pn in ProjectFileNames)
+            int row = 0; int col = 0; int fileCounter = 0;
+            if (ProjectFileNames == null)
             {
-                Button P = new Button();
-                P.Font = new Font(FontFamily.GenericSansSerif, 18.0F, FontStyle.Bold);
-                P.FlatAppearance.BorderSize = 0;
-                P.FlatStyle = FlatStyle.Flat;
-                P.BackColor = Color.Black;
-                P.ForeColor = Color.White;
-                P.Text = pn;
-                P.Top = T + row * (H + D);
+                MessageBox.Show("there are no kml input files in the _Waldo_FCS folder ... exiting");
+                Environment.Exit(-1);
+ 
+                return;
+            }
 
-                // - (2 * S + 3 * W)) / 2 -- centers the button area on the screen width
+            //cycle through all the Project Filenames
+            foreach (String projectFilename in ProjectFileNames)
+            {
+                //set up the buttons and place on the form in a grid
+                Button projectButton = new Button();
+                projectButton.Font = new Font(FontFamily.GenericSansSerif, 18.0F, FontStyle.Bold);
+                projectButton.FlatAppearance.BorderSize = 0;
+                projectButton.FlatStyle = FlatStyle.Flat;
+
+                //change the button backcolor depending on the polygon or linearFeature coverage type
+                if(ProjectCoverageTypes[fileCounter] == COVERAGE_TYPE.polygon)
+                    projectButton.BackColor = Color.Black;
+                else if (ProjectCoverageTypes[fileCounter] == COVERAGE_TYPE.linearFeature)
+                    projectButton.BackColor = Color.Blue;
+
+                projectButton.ForeColor = Color.White;
+                ///////////////////////////////////////////////////////////////////////////////////
+                projectButton.Text = projectFilename;  //display the Project name that is the name of the input kml file
+                ///////////////////////////////////////////////////////////////////////////////////
+                projectButton.Top = T + row * (H + D);
+
+                //  -(2 * S + 3 * W)) / 2 -- centers the button area on the screen width
                 //  + col*(W + S) -- moves the button left side by the button width + between-button spacing
-                P.Left = (FW - (2 * S + 3 * W)) / 2 + col*(W + S); 
+                projectButton.Left = (FW - (2 * S + 3 * W)) / 2 + col * (W + S); 
 
                 col++; if (col == 3) { row++; col = 0; }
-                P.Width = W;
-                P.Height = H;
-                P.Visible = true;
+                projectButton.Width = W;
+                projectButton.Height = H;
+                projectButton.Visible = true;
 
-                P.Click += new EventHandler(this.P_Click);
+                projectButton.Click += new EventHandler(this.projectButton_Click);
 
-                this.Controls.Add(P);
+                this.Controls.Add(projectButton);
+                fileCounter++;
             }
         }
 
         private void TurnOffUnnessaryServices()
         {
+            /////////////////////////////////////////////////////////
+            //procedure not called ---
+            //used to turn off all unnecessary Windows services.
+            /////////////////////////////////////////////////////
+            
             StreamReader sr = new StreamReader("Win7Services.txt");
             string rec;
             //read off the initial comment lines
@@ -315,7 +492,7 @@ namespace Waldo_FCS
                 //there should be exactly 9 in the above set of statuses
                 if (numServiceStats != 9)
                 {
-                    int a = 4;
+                    //int a = 4;
                 }
             }
 
